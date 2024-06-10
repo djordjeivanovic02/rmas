@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">AquaSpot</string>
+    <string name="welcome_text">Krenimo Odmah</string>
+    <string name="login_text">Prijavite se za nastavak</string>
+    <string name="email_input_text">Email adresa</string>
 </resources>
