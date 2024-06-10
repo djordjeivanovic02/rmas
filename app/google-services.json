@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "732729750085",
+    "project_id": "rmas-6f7af",
+    "storage_bucket": "rmas-6f7af.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:732729750085:android:6fd269fe186bbd7f55292c",
+        "android_client_info": {
+          "package_name": "com.example.aquaspot"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCev3hU-o7O0-FW1xmwuK4iIGySWFKDqKg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:732729750085:android:1141e03cca0ec23455292c",
+        "android_client_info": {
+          "package_name": "com.example.rmas"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCev3hU-o7O0-FW1xmwuK4iIGySWFKDqKg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
