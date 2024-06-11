@@ -24,9 +24,11 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -54,18 +56,37 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.aquaspot.R
+import com.example.aquaspot.ui.theme.buttonDisabledColor
 import com.example.aquaspot.ui.theme.greyTextColor
+import com.example.aquaspot.ui.theme.lightMailColor
+import com.example.aquaspot.ui.theme.lightRedColor
 import com.example.aquaspot.ui.theme.mainColor
 import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 
 @Composable
-fun loginRegisterImage(){
+fun loginImage(){
 Box(modifier = Modifier
     .fillMaxWidth()
     .padding(20.dp),
 
     contentAlignment = Alignment.Center){
         Image(painter = painterResource(id = R.drawable.loginimage),
+            contentDescription = "Login Image",
+            modifier = Modifier
+                .width(210.dp)
+                .height(210.dp)
+        )
+    }
+}
+
+@Composable
+fun registerImage(){
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .padding(20.dp),
+
+        contentAlignment = Alignment.Center){
+        Image(painter = painterResource(id = R.drawable.signupicon),
             contentDescription = "Login Image",
             modifier = Modifier
                 .width(210.dp)
@@ -109,11 +130,12 @@ fun inputTextIndicator(textValue: String){
 
 @Composable
 fun customTextInput(
+    isEmail: Boolean,
     inputValue: MutableState<String>,
     inputText: String,
     leadingIcon: ImageVector,
     isError: MutableState<Boolean>,
-    errorText: MutableState<String>
+    errorText: MutableState<String>,
 ){
     Box(
         modifier = Modifier
@@ -145,7 +167,7 @@ fun customTextInput(
                 Text(
                     text = inputText,
                     style = TextStyle(
-                        color = Color.Black,
+                        color = greyTextColor,
                         fontWeight = FontWeight.Medium
                     )
                 )
@@ -158,7 +180,8 @@ fun customTextInput(
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color.Transparent,
                 unfocusedBorderColor = Color.Transparent,
-            )
+            ),
+            keyboardOptions = if(isEmail) KeyboardOptions(keyboardType = KeyboardType.Email) else KeyboardOptions.Default
         )
     }
     if(isError.value) {
@@ -170,6 +193,8 @@ fun customTextInput(
                 color = Color.Red
             )
         )
+    }else{
+        Text(text = " ")
     }
 }
 
@@ -177,12 +202,10 @@ fun customTextInput(
 fun customPasswordInput(
     inputValue: MutableState<String>,
     inputText: String,
-    leadingIcon: ImageVector
-
+    leadingIcon: ImageVector,
+    isError: MutableState<Boolean>,
+    errorText: MutableState<String>
 ){
-    var isError = remember {
-        mutableStateOf(false)
-    }
     var showPassword = remember {
         mutableStateOf(false)
     }
@@ -209,6 +232,7 @@ fun customPasswordInput(
             value = inputValue.value,
             onValueChange = { newValue ->
                 inputValue.value = newValue
+                isError.value = false
             },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
@@ -216,7 +240,7 @@ fun customPasswordInput(
                 Text(
                     text = inputText,
                     style = TextStyle(
-                        color = Color.Black,
+                        color = greyTextColor,
                         fontWeight = FontWeight.Medium
                     )
                 )
@@ -247,22 +271,25 @@ fun customPasswordInput(
     }
     if(isError.value) {
         Text(
-            text = "Postoji nalog sa unetom email adresom",
+            text = errorText.value,
             modifier = Modifier.fillMaxWidth(),
             style = TextStyle(
                 textAlign = TextAlign.Center,
                 color = Color.Red
             )
         )
+    }else{
+        Text(text = " ")
     }
 }
 
 @Composable
 fun loginRegisterCustomButton(
     buttonText: String,
+    isEnabled: MutableState<Boolean>,
+    isLoading: MutableState<Boolean>,
     onClick: () -> Unit
-){
-
+) {
     Button(
         onClick = onClick,
         modifier = Modifier
@@ -270,19 +297,38 @@ fun loginRegisterCustomButton(
             .padding(vertical = 2.dp)
             .height(50.dp)
             .shadow(6.dp, shape = RoundedCornerShape(20.dp)),
-        colors = ButtonDefaults.buttonColors(mainColor),
-        shape = RoundedCornerShape(20.dp)
+        colors = ButtonDefaults.buttonColors(
+            containerColor = mainColor,
+            contentColor = Color.Black,
+            disabledContainerColor = buttonDisabledColor,
+            disabledContentColor = Color.White
+        ),
+        shape = RoundedCornerShape(20.dp),
+        enabled = isEnabled.value
     ) {
-        Text(
-            text = buttonText,
-            style = TextStyle(
-                color = Color.Black,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
-        )
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (isLoading.value) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = Color.White,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text(
+                    text = buttonText,
+                    style = TextStyle(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                )
+            }
+        }
     }
 }
+
 
 @Composable
 fun customClickableText(
@@ -310,6 +356,26 @@ fun customClickableText(
             style = TextStyle(
                 fontSize = 12.sp,
                 color = mainColor
+            )
+        )
+    }
+}
+
+
+@Composable
+fun customAuthError(
+    errorText: String
+){
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .background(lightRedColor)
+        .height(50.dp),
+        contentAlignment = Alignment.Center
+    ){
+        Text(
+            text = errorText,
+            style = TextStyle(
+                fontWeight = FontWeight.Bold
             )
         )
     }

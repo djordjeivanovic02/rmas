@@ -7,4 +7,7 @@
     <string name="password_input_text">Lozinka</string>
     <string name="password_example">********</string>
     <string name="login_button">Prijavi se</string>
+    <string name="credentials_error">Uneti podaci nisu ispravni</string>
+    <string name="email_badly_formatted">Neispravan format email adrese</string>
+
 </resources>

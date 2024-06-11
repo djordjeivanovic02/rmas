@@ -14,5 +14,7 @@ val mainColor = Color(0xFF79EA99)
 val lightMailColor = Color(0xFF79EA99)
 val lightRedColor = Color(0xFFFEBFBF)
 
+val buttonDisabledColor = Color(0xFFC5F0D1)
+
 val redTextColor = Color(0xFFF36060)
 var greyTextColor = Color(0xFFC1C1C1)

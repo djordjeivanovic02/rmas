@@ -7,6 +7,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.aquaspot.screens.IndexScreen
 import com.example.aquaspot.viewmodels.AuthViewModel
 import com.example.aquaspot.screens.LoginScreen
+import com.example.aquaspot.screens.RegisterScreen
 
 @Composable
 fun Router(
@@ -15,10 +16,13 @@ fun Router(
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = Routes.loginScreen) {
         composable(Routes.loginScreen){
-            LoginScreen(viewModel, navController)
+            LoginScreen(viewModel = viewModel, navController = navController)
         }
         composable(Routes.indexScreen){
-            IndexScreen(viewModel, navController)
+            IndexScreen(viewModel = viewModel, navController = navController)
+        }
+        composable(Routes.registerScreen){
+            RegisterScreen(viewModel = viewModel, navController = navController)
         }
     }
 }

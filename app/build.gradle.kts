@@ -51,12 +51,11 @@ android {
 }
 
 dependencies {
+    implementation(libs.firebase.firestore)
     val nav_version = "2.7.7"
     implementation("androidx.navigation:navigation-compose:$nav_version")
-    implementation("androidx.hilt:hilt-navigation-fragment:1.0.0")
-    implementation("androidx.constraintlayout:constraintlayout-compose:1.0.0-alpha07")
     implementation("androidx.compose.material:material-icons-extended:1.0.0-alpha08")
-
+    implementation("androidx.compose.material:material:1.6.7")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
