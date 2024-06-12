@@ -1,14 +1,24 @@
 package com.example.aquaspot.screens.components
 
+import android.net.Uri
+import android.widget.ImageButton
+import android.widget.Space
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -41,10 +51,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -55,6 +67,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.aquaspot.R
 import com.example.aquaspot.ui.theme.buttonDisabledColor
 import com.example.aquaspot.ui.theme.greyTextColor
@@ -78,22 +91,71 @@ Box(modifier = Modifier
         )
     }
 }
-
 @Composable
-fun registerImage(){
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .padding(20.dp),
+fun registerImage() {
+    val selectedImageUri = remember {
+        mutableStateOf<Uri?>(null)
+    }
 
-        contentAlignment = Alignment.Center){
-        Image(painter = painterResource(id = R.drawable.signupicon),
-            contentDescription = "Login Image",
-            modifier = Modifier
-                .width(210.dp)
-                .height(210.dp)
-        )
+    val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            selectedImageUri.value = uri
+        }
+    )
+
+    val interactionSource = remember { MutableInteractionSource() }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(140.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        if (selectedImageUri.value == null) {
+            Image(
+                painter = painterResource(id = R.drawable.profile),
+                contentDescription = "Profile Image",
+                modifier = Modifier
+                    .size(150.dp)
+                    .clip(RoundedCornerShape(70.dp)) // 50% border radius
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = null
+                    ) {
+                        singlePhotoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    }
+            )
+        } else {
+            selectedImageUri.value?.let { uri ->
+                AsyncImage(
+                    model = uri,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(140.dp)
+                        .clip(RoundedCornerShape(70.dp)) // 50% border radius
+                        .background(Color.LightGray)
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null
+                        ) {
+                            singlePhotoPickerLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        },
+                    contentScale = ContentScale.Crop
+                )
+            }
+        }
     }
 }
+
+
+
+
+
 
 @Composable
 fun headingText(textValue: String){
@@ -131,6 +193,7 @@ fun inputTextIndicator(textValue: String){
 @Composable
 fun customTextInput(
     isEmail: Boolean,
+    isNumber: Boolean = false,
     inputValue: MutableState<String>,
     inputText: String,
     leadingIcon: ImageVector,
@@ -181,7 +244,7 @@ fun customTextInput(
                 focusedBorderColor = Color.Transparent,
                 unfocusedBorderColor = Color.Transparent,
             ),
-            keyboardOptions = if(isEmail) KeyboardOptions(keyboardType = KeyboardType.Email) else KeyboardOptions.Default
+            keyboardOptions = if(isEmail && !isNumber) KeyboardOptions(keyboardType = KeyboardType.Email) else if(!isEmail && isNumber) KeyboardOptions(keyboardType = KeyboardType.Number) else KeyboardOptions.Default
         )
     }
     if(isError.value) {
@@ -193,8 +256,6 @@ fun customTextInput(
                 color = Color.Red
             )
         )
-    }else{
-        Text(text = " ")
     }
 }
 
@@ -378,5 +439,45 @@ fun customAuthError(
                 fontWeight = FontWeight.Bold
             )
         )
+    }
+}
+
+@Composable
+fun customImagePicker() {
+    val selectedImageUri = remember {
+        mutableStateOf<Uri?>(null)
+    }
+
+    val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            selectedImageUri.value = uri
+        }
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Button(onClick = {
+            singlePhotoPickerLauncher.launch(
+                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+            )
+        }) {
+            Text(text = "Izaberi sliku")
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+        selectedImageUri.value?.let { uri ->
+            AsyncImage(
+                model = uri,
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .background(Color.LightGray),
+                contentScale = ContentScale.Fit
+            )
+        }
     }
 }
