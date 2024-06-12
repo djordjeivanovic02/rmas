@@ -89,6 +89,7 @@ fun RegisterScreen(
                 .padding(bottom = 120.dp)
         ) {
             registerImage()
+            //Test
             Spacer(modifier = Modifier.height(20.dp))
             headingText(textValue = stringResource(id = R.string.register))
             Spacer(modifier = Modifier.height(5.dp))
