@@ -1,6 +1,7 @@
 package com.example.aquaspot.screens.components
 
 import android.net.Uri
+import android.util.Log
 import android.widget.ImageButton
 import android.widget.Space
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -92,11 +93,11 @@ Box(modifier = Modifier
     }
 }
 @Composable
-fun registerImage() {
-    val selectedImageUri = remember {
-        mutableStateOf<Uri?>(null)
-    }
+fun registerImage(
+    selectedImageUri: MutableState<Uri?>,
+    isError: MutableState<Boolean>
 
+) {
     val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
@@ -112,12 +113,13 @@ fun registerImage() {
             .height(140.dp),
         contentAlignment = Alignment.Center
     ) {
-        if (selectedImageUri.value == null) {
+        if (selectedImageUri.value == Uri.EMPTY) {
             Image(
                 painter = painterResource(id = R.drawable.profile),
                 contentDescription = "Profile Image",
                 modifier = Modifier
-                    .size(150.dp)
+                    .size(140.dp)
+                    .border(if(isError.value) BorderStroke(2.dp, Color.Red) else BorderStroke(0.dp, Color.Transparent))
                     .clip(RoundedCornerShape(70.dp)) // 50% border radius
                     .clickable(
                         interactionSource = interactionSource,
@@ -247,7 +249,7 @@ fun customTextInput(
             keyboardOptions = if(isEmail && !isNumber) KeyboardOptions(keyboardType = KeyboardType.Email) else if(!isEmail && isNumber) KeyboardOptions(keyboardType = KeyboardType.Number) else KeyboardOptions.Default
         )
     }
-    if(isError.value) {
+    if(isError.value && errorText.value.isNotEmpty()) {
         Text(
             text = errorText.value,
             modifier = Modifier.fillMaxWidth(),
@@ -330,7 +332,7 @@ fun customPasswordInput(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
         )
     }
-    if(isError.value) {
+    if(isError.value && errorText.value.isNotEmpty()) {
         Text(
             text = errorText.value,
             modifier = Modifier.fillMaxWidth(),

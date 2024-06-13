@@ -1,5 +1,6 @@
 package com.example.aquaspot.screens
 
+import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -18,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.MailOutline
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material3.Button
@@ -59,16 +61,23 @@ fun RegisterScreen(
     viewModel: AuthViewModel?,
     navController: NavController?
 ) {
+    val registerFlow = viewModel?.registerFlow?.collectAsState()
+
     val email = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
     val fullName = remember { mutableStateOf("") }
     val phoneNumber = remember { mutableStateOf("") }
+    val profileImage = remember { mutableStateOf(Uri.EMPTY) }
 
     val isEmailError = remember { mutableStateOf(false) }
     val emailErrorText = remember { mutableStateOf("") }
 
     val isPasswordError = remember { mutableStateOf(false) }
     val passwordErrorText = remember { mutableStateOf("") }
+
+    val isImageError = remember { mutableStateOf(false) }
+    val isFullNameError = remember { mutableStateOf(false) }
+    val isPhoneNumberError = remember { mutableStateOf(false) }
 
     val isError = remember { mutableStateOf(false) }
     val errorText = remember { mutableStateOf("") }
@@ -88,7 +97,10 @@ fun RegisterScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = 120.dp)
         ) {
-            registerImage()
+            registerImage(
+                profileImage,
+                isImageError
+            )
             //Test
             Spacer(modifier = Modifier.height(20.dp))
             headingText(textValue = stringResource(id = R.string.register))
@@ -97,13 +109,13 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(20.dp))
             if (isError.value) customAuthError(errorText = errorText.value)
             Spacer(modifier = Modifier.height(20.dp))
-            inputTextIndicator(textValue = stringResource(id = R.string.username_text))
+            inputTextIndicator(textValue = stringResource(id = R.string.email_input_text))
             Spacer(modifier = Modifier.height(10.dp))
             customTextInput(
                 isEmail = false,
                 inputValue = email,
-                inputText = stringResource(id = R.string.username_example_text),
-                leadingIcon = Icons.Outlined.Person,
+                inputText = stringResource(id = R.string.email_example),
+                leadingIcon = Icons.Outlined.MailOutline,
                 isError = isEmailError,
                 errorText = emailErrorText
             )
@@ -115,7 +127,7 @@ fun RegisterScreen(
                 inputValue = fullName,
                 inputText = stringResource(id = R.string.full_name_example_text),
                 leadingIcon = Icons.Outlined.Person,
-                isError = isEmailError,
+                isError = isFullNameError,
                 errorText = emailErrorText
             )
             Spacer(modifier = Modifier.height(10.dp))
@@ -127,7 +139,7 @@ fun RegisterScreen(
                 inputValue = phoneNumber,
                 inputText = stringResource(id = R.string.phone_number_example_text),
                 leadingIcon = Icons.Outlined.Phone,
-                isError = isEmailError,
+                isError = isPhoneNumberError,
                 errorText = emailErrorText
             )
             Spacer(modifier = Modifier.height(10.dp))
@@ -154,11 +166,39 @@ fun RegisterScreen(
                 isEnabled = buttonIsEnabled,
                 isLoading = isLoading,
                 onClick = {
+                    isImageError.value = false
                     isEmailError.value = false
                     isPasswordError.value = false
+                    isImageError.value = false
+                    isFullNameError.value = false
+                    isPhoneNumberError.value = false
                     isError.value = false
                     isLoading.value = true
-                    viewModel?.signUp(email.value, password.value)
+
+                    if(profileImage.value == Uri.EMPTY && profileImage.value != null){
+                        isImageError.value = true
+                        isLoading.value = false
+                    }else if(email.value.isEmpty()){
+                        isEmailError.value = true
+                        isLoading.value = false
+                    }else if(fullName.value.isEmpty()){
+                        isFullNameError.value = true
+                        isLoading.value = false
+                    }else if(phoneNumber.value.isEmpty()){
+                        isPhoneNumberError.value = true
+                        isLoading.value = false
+                    }else if(password.value.isEmpty()){
+                        isPasswordError.value = true
+                        isLoading.value = false
+                    }else {
+                        viewModel?.register(
+                            fullName = fullName.value,
+                            phoneNumber = phoneNumber.value,
+                            profileImage = profileImage.value,
+                            email = email.value,
+                            password = password.value
+                        )
+                    }
                 }
             )
             Spacer(modifier = Modifier.height(10.dp))
@@ -169,6 +209,56 @@ fun RegisterScreen(
                     navController?.navigate(Routes.loginScreen)
                 }
             )
+        }
+    }
+
+    registerFlow?.value.let {
+        when (it) {
+            is Resource.Failure -> {
+                isLoading.value = false
+                Log.d("Error", it.exception.message.toString())
+//                val context = LocalContext.current
+//                Toast.makeText(context, it.exception.message, Toast.LENGTH_LONG).show()
+
+                when (it.exception.message.toString()) {
+                    AuthExceptionsMessages.emptyFields -> {
+                        isEmailError.value = true
+                        isPasswordError.value = true
+                    }
+                    AuthExceptionsMessages.badlyEmailFormat -> {
+                        isEmailError.value = true
+                        emailErrorText.value = stringResource(id = R.string.email_badly_formatted)
+                    }
+                    AuthExceptionsMessages.invalidCredential -> {
+                        isError.value = true
+                        errorText.value = stringResource(id = R.string.credentials_error)
+                    }
+                    AuthExceptionsMessages.shortPassword -> {
+                        isPasswordError.value = true
+                        passwordErrorText.value = stringResource(id = R.string.short_password)
+                    }
+                    AuthExceptionsMessages.emailUsed -> {
+                        isError.value = true
+                        errorText.value = stringResource(id = R.string.email_used)
+                    }
+
+                    else -> {}
+                }
+            }
+            is Resource.loading -> {
+                // Do nothing, as isLoading is already set in onClick
+            }
+            is Resource.Success -> {
+                isLoading.value = false
+                LaunchedEffect(Unit) {
+                    navController?.navigate(Routes.indexScreen) {
+                        popUpTo(Routes.indexScreen) {
+                            inclusive = true
+                        }
+                    }
+                }
+            }
+            null -> Log.d("Test", "Test")
         }
     }
 }

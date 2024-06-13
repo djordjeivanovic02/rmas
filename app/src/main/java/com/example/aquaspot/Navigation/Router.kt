@@ -8,6 +8,7 @@ import com.example.aquaspot.screens.IndexScreen
 import com.example.aquaspot.viewmodels.AuthViewModel
 import com.example.aquaspot.screens.LoginScreen
 import com.example.aquaspot.screens.RegisterScreen
+import com.example.aquaspot.viewmodels.AddNewUserViewModel
 
 @Composable
 fun Router(

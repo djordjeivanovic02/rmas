@@ -23,7 +23,7 @@ fun IndexScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Button(onClick = {
-//            viewModel?.logout()
+            viewModel?.logout()
             navController.navigate(Routes.loginScreen)
         }) {
             Text(text = "Odjavi se")

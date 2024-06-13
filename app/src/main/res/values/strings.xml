@@ -20,5 +20,7 @@
     <string name="phone_number_example_text">0601234567</string>
     <string name="already_have_account">Već imate nalog? </string>
     <string name="lets_login">Prijavi se</string>
+    <string name="email_used">Postoji nalog sa ovom adresom</string>
+    <string name="short_password">Lozinka mora imati najmanje 6 karaktera</string>
 
 </resources>

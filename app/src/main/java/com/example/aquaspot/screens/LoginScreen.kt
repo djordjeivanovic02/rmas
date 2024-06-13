@@ -51,7 +51,7 @@ fun LoginScreen(
     viewModel: AuthViewModel?,
     navController: NavController
 ) {
-//    val loginFlow = viewModel?.loginFlow?.collectAsState()
+    val loginFlow = viewModel?.loginFlow?.collectAsState()
     val email = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
 
@@ -110,7 +110,7 @@ fun LoginScreen(
                 isPasswordError.value = false
                 isError.value = false
                 isLoading.value = true
-//                viewModel?.login(email.value, password.value)
+                viewModel?.login(email.value, password.value)
             }
         )
         Spacer(modifier = Modifier.height(10.dp))
@@ -119,44 +119,45 @@ fun LoginScreen(
         })
     }
 
-//    loginFlow?.value.let {
-//        when (it) {
-//            is Resource.Failure -> {
-//                isLoading.value = false
-//                Log.d("Error", it.exception.message.toString())
+    loginFlow?.value.let {
+        when (it) {
+            is Resource.Failure -> {
+                isLoading.value = false
+                Log.d("Error", it.exception.message.toString())
 //                val context = LocalContext.current
 //                Toast.makeText(context, it.exception.message, Toast.LENGTH_LONG).show()
-//
-//                when (it.exception.message.toString()) {
-//                    AuthExceptionsMessages.emptyFields -> {
-//                        isEmailError.value = true
-//                        isPasswordError.value = true
-//                    }
-//                    AuthExceptionsMessages.badlyEmailFormat -> {
-//                        isEmailError.value = true
-//                        emailErrorText.value = stringResource(id = R.string.email_badly_formatted)
-//                    }
-//                    AuthExceptionsMessages.invalidCredential -> {
-//                        isError.value = true
-//                        errorText.value = stringResource(id = R.string.credentials_error)
-//                    }
-//                    else -> {}
-//                }
-//            }
-//            is Resource.loading -> {
-//                // Do nothing, as isLoading is already set in onClick
-//            }
-//            is Resource.Success -> {
-//                isLoading.value = false
-//                LaunchedEffect(Unit) {
-//                    navController.navigate(Routes.indexScreen) {
-//                        popUpTo(Routes.indexScreen) {
-//                            inclusive = true
-//                        }
-//                    }
-//                }
-//            }
-//            null -> Log.d("Test", "Test")
-//        }
-//    }
+
+                when (it.exception.message.toString()) {
+                    AuthExceptionsMessages.emptyFields -> {
+                        isEmailError.value = true
+                        isPasswordError.value = true
+                    }
+                    AuthExceptionsMessages.badlyEmailFormat -> {
+                        isEmailError.value = true
+                        emailErrorText.value = stringResource(id = R.string.email_badly_formatted)
+                    }
+                    AuthExceptionsMessages.invalidCredential -> {
+                        isError.value = true
+                        errorText.value = stringResource(id = R.string.credentials_error)
+                    }
+
+                    else -> {}
+                }
+            }
+            is Resource.loading -> {
+                // Do nothing, as isLoading is already set in onClick
+            }
+            is Resource.Success -> {
+                isLoading.value = false
+                LaunchedEffect(Unit) {
+                    navController.navigate(Routes.indexScreen) {
+                        popUpTo(Routes.indexScreen) {
+                            inclusive = true
+                        }
+                    }
+                }
+            }
+            null -> {}
+        }
+    }
 }

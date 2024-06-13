@@ -5,10 +5,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.example.aquaspot.Navigation.Router
+import com.example.aquaspot.viewmodels.AddNewUserViewModel
 import com.example.aquaspot.viewmodels.AuthViewModel
 
 @Composable
-fun AquaSpotApp(
+fun AquaSpot(
     viewModel: AuthViewModel
 ){
     Surface(modifier = Modifier.fillMaxSize()) {
