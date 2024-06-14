@@ -23,4 +23,6 @@
     <string name="email_used">Postoji nalog sa ovom adresom</string>
     <string name="short_password">Lozinka mora imati najmanje 6 karaktera</string>
 
+    <string name="notification_chanel_name">Notifikacija</string>
+
 </resources>

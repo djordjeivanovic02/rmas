@@ -24,7 +24,6 @@ class AuthRepositoryImp : AuthRepository {
     override suspend fun login(email: String, password: String): Resource<FirebaseUser> {
         return try {
             val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
-
             Resource.Success(result.user!!)
         }catch(e: Exception){
             e.printStackTrace()

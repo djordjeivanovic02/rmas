@@ -47,9 +47,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,6 +60,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -68,6 +72,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import coil.compose.AsyncImage
 import com.example.aquaspot.R
 import com.example.aquaspot.ui.theme.buttonDisabledColor
@@ -75,6 +82,20 @@ import com.example.aquaspot.ui.theme.greyTextColor
 import com.example.aquaspot.ui.theme.lightMailColor
 import com.example.aquaspot.ui.theme.lightRedColor
 import com.example.aquaspot.ui.theme.mainColor
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.MapView
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
+import com.google.maps.android.compose.CameraPositionState
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapType
+import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 
 @Composable
@@ -119,7 +140,12 @@ fun registerImage(
                 contentDescription = "Profile Image",
                 modifier = Modifier
                     .size(140.dp)
-                    .border(if(isError.value) BorderStroke(2.dp, Color.Red) else BorderStroke(0.dp, Color.Transparent))
+                    .border(
+                        if (isError.value) BorderStroke(2.dp, Color.Red) else BorderStroke(
+                            0.dp,
+                            Color.Transparent
+                        )
+                    )
                     .clip(RoundedCornerShape(70.dp)) // 50% border radius
                     .clickable(
                         interactionSource = interactionSource,
@@ -153,10 +179,6 @@ fun registerImage(
         }
     }
 }
-
-
-
-
 
 
 @Composable
@@ -482,4 +504,19 @@ fun customImagePicker() {
             )
         }
     }
+}
+
+
+@Composable
+fun MapScreen(){
+//    val context = LocalContext.current
+//    val userLocation = rememberUserLocation(context)
+//
+//    val cameraPositionState = rememberCameraPositionState {
+//        position = userLocation?.let {
+//            CameraPositionState().apply {
+//                position = CameraPosition.fromLatLngZoom(LatLng(it.latitude, it.longitude), 15f)
+//            }
+//        } ?: CameraPositionState()
+//    }
 }
