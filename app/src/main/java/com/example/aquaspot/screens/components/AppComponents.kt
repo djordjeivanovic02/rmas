@@ -20,9 +20,12 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.size
@@ -33,6 +36,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.FormatListNumbered
+import androidx.compose.material.icons.outlined.HealthAndSafety
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Map
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -55,7 +65,9 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -508,15 +520,180 @@ fun customImagePicker() {
 
 
 @Composable
-fun MapScreen(){
-//    val context = LocalContext.current
-//    val userLocation = rememberUserLocation(context)
-//
-//    val cameraPositionState = rememberCameraPositionState {
-//        position = userLocation?.let {
-//            CameraPositionState().apply {
-//                position = CameraPosition.fromLatLngZoom(LatLng(it.latitude, it.longitude), 15f)
-//            }
-//        } ?: CameraPositionState()
-//    }
+fun mapNavigationBar(
+    searchValue: MutableState<String>,
+    profileImage: String,
+){
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp)
+    ){
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .weight(1f)
+                .shadow(
+                    6.dp,
+                    shape = RoundedCornerShape(20.dp)
+                )
+                .border(
+                    1.dp,
+                    Color.Transparent,
+                    shape = RoundedCornerShape(20.dp)
+                )
+                .background(
+                    Color.White,
+                    shape = RoundedCornerShape(20.dp)
+                )
+        ){
+            OutlinedTextField(
+                value = searchValue.value,
+                onValueChange = { newValue ->
+                    searchValue.value = newValue
+                },
+                singleLine = true,
+                placeholder = {
+                    Text(
+                        text = stringResource(id = R.string.search_text),
+                        style = TextStyle(
+                            color = greyTextColor
+                        )
+                    )
+                },
+                leadingIcon = {
+                    Icon(imageVector = Icons.Outlined.Search,
+                        contentDescription = "",
+                        tint = mainColor)
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                ),
+                visualTransformation = VisualTransformation.None,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+            )
+        }
+        Spacer(modifier = Modifier.width(10.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(50.dp)
+                .shadow(
+                    6.dp,
+                    shape = RoundedCornerShape(20.dp)
+                )
+                .border(
+                    1.dp,
+                    Color.Transparent,
+                    shape = RoundedCornerShape(20.dp)
+                )
+                .background(
+                    Color.White,
+                    shape = RoundedCornerShape(20.dp)
+                ),
+            contentAlignment = Alignment.Center
+
+        ){
+            AsyncImage(
+                model = profileImage,
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(2.dp)
+                    .size(50.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .clickable {
+
+                    },
+                contentScale = ContentScale.Crop
+            )
+        }
+    }
 }
+
+@Composable
+fun mapFooter() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp)
+            .background(Color.Transparent)  // Set background color if necessary
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(100.dp)
+                .shadow(
+                    elevation = 20.dp,
+                    shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp),
+                    spotColor = Color.Transparent
+                )
+                .border(
+                    1.dp,
+                    Color.Transparent,
+                    shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
+                )
+                .background(
+                    Color.White,
+                    shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(
+                        imageVector = Icons.Outlined.Home,  // Replace with appropriate icon
+                        contentDescription = "",
+                        tint = greyTextColor,
+                        modifier = Modifier.size(35.dp)
+                    )
+                }
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(
+                        imageVector = Icons.Outlined.Map,  // Replace with appropriate icon
+                        contentDescription = "",
+                        tint = greyTextColor,
+                        modifier = Modifier.size(35.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.size(70.dp))  // Spacer for search icon position
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(
+                        imageVector = Icons.Outlined.FormatListNumbered,
+                        contentDescription = "",
+                        tint = greyTextColor,
+                        modifier = Modifier.size(35.dp)
+                    )
+                }
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(
+                        imageVector = Icons.Outlined.Settings,
+                        contentDescription = "",
+                        tint = greyTextColor,
+                        modifier = Modifier.size(35.dp)
+                    )
+                }
+            }
+        }
+        Box(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .offset(y = (-30).dp)  // Negative offset to overlap the footer
+                .size(90.dp)  // Adjust size as needed
+        ) {
+                Image(
+                    painter = painterResource(id = R.drawable.searchcomponent),
+                    contentDescription = "",
+                    modifier = Modifier.fillMaxSize()
+                )
+
+        }
+    }
+}
+
+
+

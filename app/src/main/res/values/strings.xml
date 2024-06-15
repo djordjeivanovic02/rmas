@@ -24,5 +24,6 @@
     <string name="short_password">Lozinka mora imati najmanje 6 karaktera</string>
 
     <string name="notification_chanel_name">Notifikacija</string>
+    <string name="search_text">Pretraži</string>
 
 </resources>

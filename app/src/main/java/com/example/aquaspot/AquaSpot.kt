@@ -4,7 +4,9 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -16,6 +18,7 @@ import com.example.aquaspot.location.LocationService
 import com.example.aquaspot.viewmodels.AddNewUserViewModel
 import com.example.aquaspot.viewmodels.AuthViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AquaSpot(
     viewModel: AuthViewModel
@@ -37,8 +40,10 @@ fun AquaSpot(
     } else {
         Intent(context, LocationService::class.java).apply {
             action = LocationService.ACTION_START
-            context.startService(this)
+//            context.startService(this)
+            context.startForegroundService(this)
         }
+
     }
 
     Surface(modifier = Modifier.fillMaxSize()) {
