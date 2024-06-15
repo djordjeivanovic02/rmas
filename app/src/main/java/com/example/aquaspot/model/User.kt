@@ -7,6 +7,4 @@ data class CustomUser(
     val fullName: String = "",
     val phoneNumber: String = "",
     val profileImage: String = ""
-){
-    constructor(): this("", "", "", "")
-}
+)

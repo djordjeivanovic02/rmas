@@ -26,4 +26,7 @@
     <string name="notification_chanel_name">Notifikacija</string>
     <string name="search_text">Pretraži</string>
 
+
+    <string name="add_new_beach_heading">Dodaj novu plažu na ovoj lokaciji</string>
+
 </resources>

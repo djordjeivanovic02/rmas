@@ -30,9 +30,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -52,6 +55,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -82,6 +86,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -108,6 +113,7 @@ import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.protobuf.Empty
 import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 
 @Composable
@@ -294,6 +300,70 @@ fun customTextInput(
         )
     }
 }
+
+
+@Composable
+fun customRichTextInput(
+    inputValue: MutableState<String>,
+    inputText: String,
+    isError: MutableState<Boolean>,
+    errorText: MutableState<String>,
+){
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp)
+            .shadow(
+                6.dp,
+                shape = RoundedCornerShape(20.dp)
+            )
+            .border(
+                1.dp,
+                if (isError.value) Color.Red else Color.Transparent,
+                shape = RoundedCornerShape(20.dp)
+            )
+            .background(
+                Color.White,
+                shape = RoundedCornerShape(20.dp)
+            )
+    ){
+        OutlinedTextField(
+            value = inputValue.value,
+            onValueChange = { newValue ->
+                inputValue.value = newValue
+                isError.value = false
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(140.dp),
+            placeholder = {
+                Text(
+                    text = inputText,
+                    style = TextStyle(
+                        color = greyTextColor,
+                        fontWeight = FontWeight.Medium
+                    )
+                )
+            },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color.Transparent,
+                unfocusedBorderColor = Color.Transparent,
+            ),
+            keyboardOptions = KeyboardOptions.Default
+        )
+    }
+    if(isError.value && errorText.value.isNotEmpty()) {
+        Text(
+            text = errorText.value,
+            modifier = Modifier.fillMaxWidth(),
+            style = TextStyle(
+                textAlign = TextAlign.Center,
+                color = Color.Red
+            )
+        )
+    }
+}
+
 
 @Composable
 fun customPasswordInput(
@@ -612,7 +682,9 @@ fun mapNavigationBar(
 }
 
 @Composable
-fun mapFooter() {
+fun mapFooter(
+    openAddNewBeach: () -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -685,15 +757,237 @@ fun mapFooter() {
                 .offset(y = (-30).dp)  // Negative offset to overlap the footer
                 .size(90.dp)  // Adjust size as needed
         ) {
+            IconButton(onClick = openAddNewBeach,
+                modifier = Modifier.fillMaxSize()) {
                 Image(
                     painter = painterResource(id = R.drawable.searchcomponent),
                     contentDescription = "",
                     modifier = Modifier.fillMaxSize()
                 )
+            }
+        }
+    }
+}
 
+@Composable
+fun CustomCrowd(
+    selectedOption: MutableState<Int>
+){
+    val customModifier = Modifier
+        .fillMaxSize()
+        .shadow(
+            elevation = 20.dp,
+            shape = RoundedCornerShape(10.dp),
+            spotColor = Color.Transparent
+        )
+        .border(
+            1.dp,
+            Color.Transparent,
+            shape = RoundedCornerShape(10.dp),
+        )
+        .background(
+            Color.White,
+            shape = RoundedCornerShape(10.dp),
+        )
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(modifier = Modifier
+            .width(100.dp)
+            .height(40.dp)
+        ) {
+            Box(
+                modifier =
+                if(selectedOption.value == 0)
+                    customModifier.background(Color.Green)
+                else
+                    customModifier.clickable {
+                        selectedOption.value = 0
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "Slabo")
+            }
+        }
+        Row(modifier = Modifier
+            .width(100.dp)
+            .height(40.dp)
+        ) {
+            Box(
+                modifier =
+                if(selectedOption.value == 1)
+                    customModifier.background(Color.Yellow)
+                else
+                    customModifier.clickable {
+                        selectedOption.value = 1
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "Srednje")
+            }
+        }
+        Row(modifier = Modifier
+            .width(100.dp)
+            .height(40.dp)
+        ) {
+            Box(
+                modifier =
+                if(selectedOption.value == 2)
+                    customModifier.background(Color.Red)
+                else
+                    customModifier.clickable {
+                        selectedOption.value = 2
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "Mnogo")
+            }
+        }
+    }
+}
+
+@Composable
+fun CustomImageForNewBeach(
+    selectedImageUri: MutableState<Uri?>
+){
+    val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            selectedImageUri.value = uri
+        }
+    )
+
+    val interactionSource = remember { MutableInteractionSource() }
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .height(200.dp)
+        .padding(vertical = 2.dp)
+        .shadow(
+            6.dp,
+            shape = RoundedCornerShape(20.dp)
+        )
+        .border(
+            1.dp,
+            Color.Transparent,
+            shape = RoundedCornerShape(20.dp)
+        )
+        .background(
+            greyTextColor,
+            shape = RoundedCornerShape(20.dp)
+        ),
+        contentAlignment = Alignment.Center
+    ){
+        if (selectedImageUri.value == Uri.EMPTY) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = null
+                    ) {
+                        singlePhotoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    }
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.uploadimage),
+                    contentDescription = ""
+                )
+                Text(text = "Dodaj naslovnu sliku")
+            }
+        }else{
+            selectedImageUri.value?.let { uri ->
+                AsyncImage(
+                    model = uri,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.LightGray)
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null
+                        ) {
+                            singlePhotoPickerLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        },
+                    contentScale = ContentScale.Crop
+                )
+            }
         }
     }
 }
 
 
+@Composable
+fun CustomGalleryForAddNewBeach(
+    selectedImages: MutableState<List<Uri>>
+) {
+    val pickImagesLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        if (uris != null) {
+            selectedImages.value += uris
+        }
+    }
 
+    LazyRow {
+        if (selectedImages.value.size < 5) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .width(100.dp)
+                        .height(100.dp)
+                        .border(
+                            1.dp,
+                            greyTextColor,
+                            shape = RoundedCornerShape(10.dp),
+                        )
+                        .background(
+                            greyTextColor,
+                            shape = RoundedCornerShape(10.dp),
+                        )
+                        .clickable { pickImagesLauncher.launch("image/*") },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(imageVector = Icons.Filled.AddAPhoto, contentDescription = "")
+                }
+            }
+        }
+        items(selectedImages.value.size) { index ->
+            val uri = selectedImages.value[index]
+            Box(
+                modifier = Modifier
+                    .padding(4.dp)
+                    .width(100.dp)
+                    .height(100.dp)
+                    .border(
+                        1.dp,
+                        Color.Transparent,
+                        shape = RoundedCornerShape(10.dp),
+                    )
+                    .background(
+                        Color.White,
+                        shape = RoundedCornerShape(10.dp),
+                    )
+                    .clickable { selectedImages.value -= uri },
+                contentAlignment = Alignment.Center
+            ) {
+                AsyncImage(
+                    model = uri,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                        .clip(RoundedCornerShape(10.dp))
+                )
+            }
+        }
+    }
+}

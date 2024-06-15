@@ -10,23 +10,34 @@ import com.example.aquaspot.screens.IndexScreen
 import com.example.aquaspot.viewmodels.AuthViewModel
 import com.example.aquaspot.screens.LoginScreen
 import com.example.aquaspot.screens.RegisterScreen
-import com.example.aquaspot.viewmodels.AddNewUserViewModel
+import com.example.aquaspot.viewmodels.BeachViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Router(
-    viewModel: AuthViewModel
+    viewModel: AuthViewModel,
+    beachViewModel: BeachViewModel
 ){
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = Routes.loginScreen) {
         composable(Routes.loginScreen){
-            LoginScreen(viewModel = viewModel, navController = navController)
+            LoginScreen(
+                viewModel = viewModel,
+                navController = navController
+            )
         }
         composable(Routes.indexScreen){
-            IndexScreen(viewModel = viewModel, navController = navController)
+            IndexScreen(
+                viewModel = viewModel,
+                navController = navController,
+                beachViewModel = beachViewModel
+            )
         }
         composable(Routes.registerScreen){
-            RegisterScreen(viewModel = viewModel, navController = navController)
+            RegisterScreen(
+                viewModel = viewModel,
+                navController = navController
+            )
         }
     }
 }

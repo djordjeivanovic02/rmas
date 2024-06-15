@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 
-class AuthViewModel(private val databaseService: DatabaseService): ViewModel(){
+class AuthViewModel(): ViewModel(){
     val repository = AuthRepositoryImp()
     private val _loginFlow = MutableStateFlow<Resource<FirebaseUser>?>(null)
     val loginFlow: StateFlow<Resource<FirebaseUser>?> = _loginFlow
@@ -52,10 +52,10 @@ class AuthViewModel(private val databaseService: DatabaseService): ViewModel(){
     }
 }
 
-class AuthViewModelFactory(private val databaseService: DatabaseService): ViewModelProvider.Factory{
+class AuthViewModelFactory(): ViewModelProvider.Factory{
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if(modelClass.isAssignableFrom(AuthViewModel::class.java)){
-            return AuthViewModel(databaseService) as T
+            return AuthViewModel() as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

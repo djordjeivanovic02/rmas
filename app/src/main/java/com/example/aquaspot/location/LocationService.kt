@@ -50,7 +50,7 @@ class LocationService : Service() {
         val notification = createNotification()
         startForeground(NOTIFICATION_ID, notification)
 
-        locationClient.getLocationUpdates(10000L)
+        locationClient.getLocationUpdates(1000L)
             .catch { e -> e.printStackTrace() }
             .onEach { location ->
                 Log.d("Lokacija", "${location.latitude} ${location.longitude}")

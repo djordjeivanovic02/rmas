@@ -15,13 +15,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import com.example.aquaspot.Navigation.Router
 import com.example.aquaspot.location.LocationService
-import com.example.aquaspot.viewmodels.AddNewUserViewModel
 import com.example.aquaspot.viewmodels.AuthViewModel
+import com.example.aquaspot.viewmodels.BeachViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AquaSpot(
-    viewModel: AuthViewModel
+    viewModel: AuthViewModel,
+    beachViewModel: BeachViewModel
 ){
     val context = LocalContext.current
     if (ActivityCompat.checkSelfPermission(
@@ -47,6 +48,7 @@ fun AquaSpot(
     }
 
     Surface(modifier = Modifier.fillMaxSize()) {
-        Router(viewModel)
+        Router(viewModel, beachViewModel)
+//        Router(viewModel = viewModel)
     }
 }
