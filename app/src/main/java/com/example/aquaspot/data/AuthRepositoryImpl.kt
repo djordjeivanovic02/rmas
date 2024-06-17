@@ -57,6 +57,36 @@ class AuthRepositoryImp : AuthRepository {
         }
     }
 
+    override suspend fun getUserData(): Resource<CustomUser> {
+        return try {
+            val currentUser = FirebaseAuth.getInstance().currentUser
+            if (currentUser != null) {
+                val uid = currentUser.uid
+
+                val db = FirebaseFirestore.getInstance()
+
+                val userDocRef = db.collection("users").document(uid)
+                val userSnapshot = userDocRef.get().await()
+
+                if (userSnapshot.exists()) {
+                    val customUser = userSnapshot.toObject(CustomUser::class.java)
+                    if (customUser != null) {
+                        Resource.Success(customUser)
+                    } else {
+                        Resource.Failure(Exception("Neuspešno mapiranje dokumenta na CustomUser"))
+                    }
+                } else {
+                    Resource.Failure(Exception("Korisnikov dokument ne postoji"))
+                }
+            } else {
+                Resource.Failure(Exception("Nema trenutnog korisnika"))
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Resource.Failure(e)
+        }
+    }
+
     override fun logout() {
         firebaseAuth.signOut()
     }

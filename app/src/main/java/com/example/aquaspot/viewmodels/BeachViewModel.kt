@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.aquaspot.data.BeachRepositoryImpl
 import com.example.aquaspot.data.Resource
+import com.example.aquaspot.model.Beach
 import com.example.aquaspot.model.service.DatabaseService
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseUser
@@ -19,6 +20,17 @@ class BeachViewModel: ViewModel() {
 
     private val _beachFlow = MutableStateFlow<Resource<String>?>(null)
     val beachFlow: StateFlow<Resource<String>?> = _beachFlow
+
+    private val _beaches = MutableStateFlow<Resource<List<Beach>>>(Resource.Success(emptyList()))
+    val beaches: StateFlow<Resource<List<Beach>>> get() = _beaches
+
+    init {
+        getAllBeaches()
+    }
+
+    fun getAllBeaches() = viewModelScope.launch {
+        _beaches.value = repository.getAllBeaches()
+    }
 
     fun saveBeachData(
         description: String,

@@ -1,5 +1,13 @@
 package com.example.aquaspot.screens.components
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.BitmapShader
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.RectF
+import android.graphics.Shader
 import android.net.Uri
 import android.util.Log
 import android.widget.ImageButton
@@ -46,6 +54,7 @@ import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.TableRows
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -62,7 +71,9 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -74,6 +85,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -87,12 +99,17 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import coil.annotation.ExperimentalCoilApi
 import coil.compose.AsyncImage
+import coil.compose.rememberImagePainter
+import coil.request.ImageRequest
 import com.example.aquaspot.R
 import com.example.aquaspot.ui.theme.buttonDisabledColor
 import com.example.aquaspot.ui.theme.greyTextColor
@@ -101,6 +118,7 @@ import com.example.aquaspot.ui.theme.lightRedColor
 import com.example.aquaspot.ui.theme.mainColor
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.MapView
+import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -114,7 +132,10 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.protobuf.Empty
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
+import java.net.URL
 
 @Composable
 fun loginImage(){
@@ -220,7 +241,16 @@ fun greyText(textValue: String){
         text = textValue
     )
 }
-
+@Composable
+fun greyTextBigger(textValue: String){
+    Text(style = TextStyle(
+        color = greyTextColor,
+        fontSize = 14.sp,
+        fontWeight = FontWeight.Medium
+    ),
+        text = textValue
+    )
+}
 @Composable
 fun inputTextIndicator(textValue: String){
     Text(style = TextStyle(
@@ -593,6 +623,7 @@ fun customImagePicker() {
 fun mapNavigationBar(
     searchValue: MutableState<String>,
     profileImage: String,
+    onImageClick: () -> Unit,
 ){
     Row(
         modifier = Modifier
@@ -673,7 +704,7 @@ fun mapNavigationBar(
                     .size(50.dp)
                     .clip(RoundedCornerShape(20.dp))
                     .clickable {
-
+                        onImageClick()
                     },
                 contentScale = ContentScale.Crop
             )
@@ -683,7 +714,12 @@ fun mapNavigationBar(
 
 @Composable
 fun mapFooter(
-    openAddNewBeach: () -> Unit
+    openAddNewBeach: () -> Unit,
+    active: Int,
+    onHomeClick: () -> Unit,
+    onTableClick: () -> Unit,
+    onRankingClick: () -> Unit,
+    onSettingsClick: () -> Unit,
 ) {
     Box(
         modifier = Modifier
@@ -716,36 +752,36 @@ fun mapFooter(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-                IconButton(onClick = { /*TODO*/ }) {
+                IconButton(onClick = onHomeClick) {
                     Icon(
                         imageVector = Icons.Outlined.Home,  // Replace with appropriate icon
                         contentDescription = "",
-                        tint = greyTextColor,
+                        tint = if(active == 0) mainColor else greyTextColor,
                         modifier = Modifier.size(35.dp)
                     )
                 }
-                IconButton(onClick = { /*TODO*/ }) {
+                IconButton(onClick = onTableClick) {
                     Icon(
-                        imageVector = Icons.Outlined.Map,  // Replace with appropriate icon
+                        imageVector = Icons.Outlined.TableRows,
                         contentDescription = "",
-                        tint = greyTextColor,
+                        tint = if(active == 1) mainColor else greyTextColor,
                         modifier = Modifier.size(35.dp)
                     )
                 }
-                Spacer(modifier = Modifier.size(70.dp))  // Spacer for search icon position
-                IconButton(onClick = { /*TODO*/ }) {
+                Spacer(modifier = Modifier.size(70.dp))
+                IconButton(onClick = onRankingClick) {
                     Icon(
                         imageVector = Icons.Outlined.FormatListNumbered,
                         contentDescription = "",
-                        tint = greyTextColor,
+                        tint = if(active == 2) mainColor else greyTextColor,
                         modifier = Modifier.size(35.dp)
                     )
                 }
-                IconButton(onClick = { /*TODO*/ }) {
+                IconButton(onClick = onSettingsClick) {
                     Icon(
                         imageVector = Icons.Outlined.Settings,
                         contentDescription = "",
-                        tint = greyTextColor,
+                        tint = if(active == 3) mainColor else greyTextColor,
                         modifier = Modifier.size(35.dp)
                     )
                 }
@@ -990,4 +1026,75 @@ fun CustomGalleryForAddNewBeach(
             }
         }
     }
+}
+
+
+
+fun bitmapDescriptorFromVector(
+    context: Context,
+    vectorResId: Int
+): BitmapDescriptor? {
+
+    // retrieve the actual drawable
+    val drawable = ContextCompat.getDrawable(context, vectorResId) ?: return null
+    drawable.setBounds(0, 0, drawable.intrinsicWidth, drawable.intrinsicHeight)
+    val bm = Bitmap.createBitmap(
+        drawable.intrinsicWidth,
+        drawable.intrinsicHeight,
+        Bitmap.Config.ARGB_8888
+    )
+
+    // draw it onto the bitmap
+    val canvas = android.graphics.Canvas(bm)
+    drawable.draw(canvas)
+    return BitmapDescriptorFactory.fromBitmap(bm)
+}
+@Composable
+fun bitmapDescriptorFromUrlWithRoundedCorners(
+    context: Context,
+    imageUrl: String,
+    cornerRadius: Float
+): State<BitmapDescriptor?> {
+    val bitmapDescriptorState = remember { mutableStateOf<BitmapDescriptor?>(null) }
+
+    LaunchedEffect(imageUrl) {
+        try {
+            withContext(Dispatchers.IO) {
+                val inputStream = URL(imageUrl).openStream()
+                val originalBitmap = BitmapFactory.decodeStream(inputStream)
+                inputStream.close()
+
+                // Calculate the aspect ratio
+                val aspectRatio = originalBitmap.width.toFloat() / originalBitmap.height.toFloat()
+
+                // Resize the image while maintaining aspect ratio
+                val targetWidth = 150
+                val targetHeight = (targetWidth / aspectRatio).toInt()
+                val resizedBitmap = Bitmap.createScaledBitmap(originalBitmap, targetWidth, targetHeight, false)
+
+                // Create a rounded bitmap
+                val roundedBitmap = Bitmap.createBitmap(
+                    resizedBitmap.width,
+                    resizedBitmap.height,
+                    Bitmap.Config.ARGB_8888
+                )
+                val canvas = Canvas(roundedBitmap)
+                val paint = Paint().apply {
+                    isAntiAlias = true
+                    shader = BitmapShader(resizedBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+                }
+                val rect = RectF(0f, 0f, resizedBitmap.width.toFloat(), resizedBitmap.height.toFloat())
+                canvas.drawRoundRect(rect, cornerRadius, cornerRadius, paint)
+
+                val bitmapDescriptor = BitmapDescriptorFactory.fromBitmap(roundedBitmap)
+                bitmapDescriptorState.value = bitmapDescriptor
+            }
+            Log.d("Ucitana", "Slika je ucitana sa zaobljenim uglovima")
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.d("Ucitana", e.toString())
+        }
+    }
+
+    return rememberUpdatedState(bitmapDescriptorState.value)
 }

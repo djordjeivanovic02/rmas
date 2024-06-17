@@ -1,6 +1,7 @@
 package com.example.aquaspot.screens.beachs
 
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -10,6 +11,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetState
+import androidx.compose.material.ModalBottomSheetValue
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,10 +43,12 @@ import com.example.aquaspot.viewmodels.BeachViewModel
 import com.google.android.gms.maps.model.LatLng
 
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AddNewBeachBottomSheet(
     beachViewModel: BeachViewModel?,
-    location: MutableState<LatLng?>
+    location: MutableState<LatLng?>,
+    sheetState: ModalBottomSheetState
 ) {
     val beachFlow = beachViewModel?.beachFlow?.collectAsState()
     val inputDescription = remember {
@@ -70,6 +77,10 @@ fun AddNewBeachBottomSheet(
         mutableStateOf<List<Uri>>(emptyList())
     }
 
+    val showedAlert = remember {
+        mutableStateOf(false)
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
@@ -92,6 +103,7 @@ fun AddNewBeachBottomSheet(
         item{CustomGalleryForAddNewBeach(selectedImages = selectedGallery)}
         item{Spacer(modifier = Modifier.height(20.dp))}
         item{loginRegisterCustomButton(buttonText = "Dodaj plazu", isEnabled = buttonIsEnabled, isLoading = buttonIsLoading) {
+            showedAlert.value = false;
             buttonIsLoading.value = true
             beachViewModel?.saveBeachData(
                 description = inputDescription.value,
@@ -107,17 +119,26 @@ fun AddNewBeachBottomSheet(
     beachFlow?.value.let {
         when (it){
             is Resource.Failure -> {
+                Log.d("Stanje flowa", it.toString());
                 buttonIsLoading.value = false
                 val context = LocalContext.current
-                Toast.makeText(context, it.exception.message, Toast.LENGTH_LONG).show()
+                if(!showedAlert.value) {
+                    Toast.makeText(context, it.exception.message, Toast.LENGTH_LONG).show()
+                    showedAlert.value = true
+                }else{}
             }
             is Resource.loading -> {
 
             }
             is Resource.Success -> {
+                Log.d("Stanje flowa", it.toString());
                 buttonIsLoading.value = false
                 val context = LocalContext.current
-                Toast.makeText(context, "Uspesno dodato", Toast.LENGTH_LONG).show()
+                if(!showedAlert.value) {
+                    Toast.makeText(context, "Uspesno dodato", Toast.LENGTH_LONG).show()
+                    showedAlert.value = true
+                    beachViewModel?.getAllBeaches()
+                }else{}
             }
             null -> {}
         }

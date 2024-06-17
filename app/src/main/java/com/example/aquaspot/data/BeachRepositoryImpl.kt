@@ -4,6 +4,7 @@ import android.net.Uri
 import com.example.aquaspot.model.Beach
 import com.example.aquaspot.model.service.DatabaseService
 import com.example.aquaspot.model.service.StorageService
+import com.example.aquaspot.utils.await
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -17,6 +18,19 @@ class BeachRepositoryImpl : BeachRepository {
 
     private val databaseService = DatabaseService(firestoreInstance)
     private val storageService = StorageService(storageInstance)
+
+
+    override suspend fun getAllBeaches(): Resource<List<Beach>> {
+        return try{
+            val snapshot = firestoreInstance.collection("beaches").get().await()
+            val beaches = snapshot.toObjects(Beach::class.java)
+            Resource.Success(beaches)
+        }catch (e: Exception){
+            e.printStackTrace()
+            Resource.Failure(e)
+        }
+    }
+
     override suspend fun saveBeachData(
         description: String,
         crowd: Int,
@@ -42,6 +56,7 @@ class BeachRepositoryImpl : BeachRepository {
                     location = geoLocation
                 )
                 databaseService.saveBeachData(beach)
+                databaseService.addPoints(currentUser.uid, 5)
             }
             Resource.Success("Uspesno sačuvani svi podaci o plaži")
         }catch (e: Exception){

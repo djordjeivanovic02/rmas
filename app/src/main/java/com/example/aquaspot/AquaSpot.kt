@@ -38,6 +38,11 @@ fun AquaSpot(
             arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
             1
         )
+        Intent(context, LocationService::class.java).apply {
+            action = LocationService.ACTION_START
+//            context.startService(this)
+            context.startForegroundService(this)
+        }
     } else {
         Intent(context, LocationService::class.java).apply {
             action = LocationService.ACTION_START

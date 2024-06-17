@@ -25,12 +25,21 @@ class AuthViewModel(): ViewModel(){
     private val _registerFlow = MutableStateFlow<Resource<FirebaseUser>?>(null)
     val registerFlow: StateFlow<Resource<FirebaseUser>?> = _registerFlow
 
+    private val _currentUserFlow = MutableStateFlow<Resource<CustomUser>?>(null)
+    val currentUserFlow: StateFlow<Resource<CustomUser>?> = _currentUserFlow
+
     val currentUser: FirebaseUser?
         get() = repository.currentUser
+
+    fun getUserData() = viewModelScope.launch {
+        val result = repository.getUserData()
+        _currentUserFlow.value = result
+    }
 
     init {
         if(repository.currentUser != null){
             _loginFlow.value = Resource.Success(repository.currentUser!!)
+            getUserData()
         }
     }
 

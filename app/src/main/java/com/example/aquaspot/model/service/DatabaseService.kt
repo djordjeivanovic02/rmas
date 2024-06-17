@@ -23,6 +23,58 @@ class DatabaseService(
         }
     }
 
+    suspend fun addPoints(
+        uid: String,
+        points: Int
+    ): Resource<String>{
+        return try {
+            val userDocRef = firestore.collection("users").document(uid)
+            val userSnapshot = userDocRef.get().await()
+
+            if(userSnapshot.exists()){
+                val user = userSnapshot.toObject(CustomUser::class.java)
+                if(user != null){
+                    val newPoints = user.points + points
+                    userDocRef.update("points", newPoints).await()
+                    Resource.Success("Uspešno dodati poeni korisniku")
+                } else {
+                    Resource.Failure(Exception("Korisnik ne postoji"))
+                }
+            } else {
+                Resource.Failure(Exception("Korisnikov dokument ne postoji"))
+            }
+            Resource.Success("Uspešno dodati podaci o korisniku")
+        }catch (e: Exception){
+            e.printStackTrace()
+            Resource.Failure(e)
+        }
+    }
+
+    suspend fun getUserData(
+        uid: String
+    ):Resource<String>{
+        return try {
+            val userDocRef = firestore.collection("users").document(uid)
+            val userSnapshot = userDocRef.get().await()
+
+            if(userSnapshot.exists()){
+                val user = userSnapshot.toObject(CustomUser::class.java)
+                if(user != null){
+                    Resource.Success(user)
+                } else {
+                    Resource.Failure(Exception("Korisnik ne postoji"))
+                }
+            } else {
+                Resource.Failure(Exception("Korisnikov dokument ne postoji"))
+            }
+            Resource.Success("Uspešno dodati podaci o korisniku")
+        }catch (e: Exception){
+            e.printStackTrace()
+            Resource.Failure(e)
+        }
+    }
+
+
     suspend fun saveBeachData(
         beach: Beach
     ): Resource<String>{

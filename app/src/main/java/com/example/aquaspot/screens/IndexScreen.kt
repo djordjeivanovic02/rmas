@@ -1,14 +1,23 @@
 package com.example.aquaspot.screens
 
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.BitmapShader
+import android.graphics.Paint
 import android.graphics.PointF
+import android.graphics.RectF
+import android.graphics.Shader
+import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import android.os.Bundle
+import android.service.autofill.UserData
 import android.util.Log
+import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -25,6 +34,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.AlertDialog
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.IconButton
 import androidx.compose.material.ModalBottomSheetLayout
@@ -38,28 +48,43 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.PaintingStyle
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Popup
 import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
+import androidx.core.view.drawToBitmap
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.NavController
+import coil.ImageLoader
+import coil.request.ImageRequest
 import com.example.aquaspot.Navigation.Routes
 import com.example.aquaspot.R
+import com.example.aquaspot.data.Resource
 import com.example.aquaspot.location.LocationService
+import com.example.aquaspot.model.Beach
+import com.example.aquaspot.model.CustomUser
 import com.example.aquaspot.screens.beachs.AddNewBeachBottomSheet
+import com.example.aquaspot.screens.components.bitmapDescriptorFromUrlWithRoundedCorners
+import com.example.aquaspot.screens.components.bitmapDescriptorFromVector
 import com.example.aquaspot.screens.components.mapFooter
 import com.example.aquaspot.screens.components.mapNavigationBar
 import com.example.aquaspot.viewmodels.AuthViewModel
@@ -71,7 +96,9 @@ import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.gson.Gson
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapType
@@ -80,25 +107,47 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerInfoWindow
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.net.URL
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(ExperimentalMaterialApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun IndexScreen(
     viewModel: AuthViewModel?,
     navController: NavController?,
-    beachViewModel: BeachViewModel?
+    beachViewModel: BeachViewModel?,
+
 ) {
-    //PODACI
+    val beachesResource = beachViewModel?.beaches?.collectAsState()
+    val userDataResource = viewModel?.currentUserFlow?.collectAsState()
+
     val searchValue = remember {
         mutableStateOf("")
     }
-
+    val userData = remember {
+        mutableStateOf<CustomUser?>(null)
+    }
     val context = LocalContext.current
     val myLocation = remember {
         mutableStateOf<LatLng?>(null)
     }
+
+    val beachMarkers = remember {
+        mutableStateListOf<Beach>()
+    }
+
+    val showFilterDialog = remember {
+        mutableStateOf(false)
+    }
+    
     val receiver = remember {
         object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
@@ -133,25 +182,29 @@ fun IndexScreen(
         mutableStateOf(MapProperties(mapType = MapType.NORMAL))
     }
     val markers = remember { mutableStateListOf<LatLng>() }
+    val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
 
     LaunchedEffect(myLocation.value) {
         myLocation.value?.let {
             Log.d("Nova lokacija gore", myLocation.toString())
             if(!cameraSet.value) {
-                cameraPositionState.position = CameraPosition.fromLatLngZoom(it, 100f)
+                cameraPositionState.position = CameraPosition.fromLatLngZoom(it, 20f)
                 cameraSet.value = true
             }
             markers.clear()
             markers.add(it)
         }
     }
-    val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+    LaunchedEffect(cameraPositionState.position) {
+        Log.d("Camera", cameraPositionState.position.toString())
+    }
+
     val scope = rememberCoroutineScope()
 
     ModalBottomSheetLayout(
         sheetState = sheetState,
         sheetContent = {
-            AddNewBeachBottomSheet(beachViewModel!!, myLocation)
+            AddNewBeachBottomSheet(beachViewModel!!, myLocation, sheetState)
         },
         sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
         modifier = Modifier.fillMaxSize()
@@ -174,6 +227,26 @@ fun IndexScreen(
                         snippet = "Marker in Singapore",
                     )
                 }
+
+                beachMarkers.forEach { marker ->
+                    val icon = bitmapDescriptorFromUrlWithRoundedCorners(
+                        context,
+                        marker.mainImage,
+                        10f,
+                    )
+                    Marker(
+                        state = rememberMarkerState(position = LatLng(marker.location.latitude, marker.location.longitude)),
+                        title = "Moja Lokacija",
+                        icon = icon.value ?: BitmapDescriptorFactory.defaultMarker(),
+                        snippet = marker.description,
+                        onClick = {
+                            val beachJson = Gson().toJson(marker)
+                            val encodedBeachJson = URLEncoder.encode(beachJson, StandardCharsets.UTF_8.toString())
+                            navController?.navigate("beachScreen/$encodedBeachJson")
+                            true
+                        }
+                    )
+                }
             }
             Column(
                 modifier = Modifier
@@ -183,8 +256,17 @@ fun IndexScreen(
             ) {
                 mapNavigationBar(
                     searchValue = searchValue,
-                    profileImage = "https://firebasestorage.googleapis.com/v0/b/rmas-6f7af.appspot.com/o/profile_picture%2FydTlwLyHDgVBycpis5cHdvyMYHE3.jpg?alt=media&token=c12596db-8faa-489b-952d-9e74d4fc7f21"
+                    profileImage = if(userData.value != null) userData.value!!.profileImage else "",
+                    onImageClick = {
+                        navController?.navigate(Routes.userProfileScreen)
+                    }
                 )
+                Spacer(modifier = Modifier.height(10.dp))
+                Button(onClick = {
+                    showFilterDialog.value = true
+                }) {
+                    Text(text = "Filteri")
+                }
             }
             Column(
                 modifier = Modifier
@@ -196,61 +278,77 @@ fun IndexScreen(
                         scope.launch {
                             sheetState.show()
                         }
-                    }
+                    },
+                    active = 0,
+                    onHomeClick = {},
+                    onTableClick = {
+                        navController?.navigate(Routes.tableScreen)
+                    },
+                    onRankingClick = {},
+                    onSettingsClick = {}
                 )
             }
         }
     }
+    
+    if (showFilterDialog.value){
+        FilterDialog(onApply = { /*TODO*/ }) {
+            
+        }
+    }
 
+   userDataResource?.value.let {
+       when(it){
+           is Resource.Success -> {
+               userData.value = it.result
+           }
+           null -> {}
+           is Resource.Failure -> TODO()
+           Resource.loading -> TODO()
+       }
+   }
+
+    beachesResource?.value.let {
+        when(it){
+            is Resource.Success -> {
+                Log.d("Podaci", it.toString())
+                beachMarkers.clear()
+                beachMarkers.addAll(it.result)
+            }
+            is Resource.loading -> {
+
+            }
+            is Resource.Failure -> {
+                Log.e("Podaci", it.toString())
+            }
+            null -> {}
+        }
+    }
 }
 
-
-
-fun bitmapDescriptorFromVector(
-    context: Context,
-    vectorResId: Int
-): BitmapDescriptor? {
-
-    // retrieve the actual drawable
-    val drawable = ContextCompat.getDrawable(context, vectorResId) ?: return null
-    drawable.setBounds(0, 0, drawable.intrinsicWidth, drawable.intrinsicHeight)
-    val bm = Bitmap.createBitmap(
-        drawable.intrinsicWidth,
-        drawable.intrinsicHeight,
-        Bitmap.Config.ARGB_8888
-    )
-
-    // draw it onto the bitmap
-    val canvas = android.graphics.Canvas(bm)
-    drawable.draw(canvas)
-    return BitmapDescriptorFactory.fromBitmap(bm)
-}
-
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Preview
 @Composable
-fun showIndex(){
-    IndexScreen(null, null, null)
+fun FilterDialog(
+    onApply: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    // Ovdje definirajte izgled dijaloga s filterima
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "Filteri") },
+        confirmButton = {
+            Button(
+                onClick = onApply,
+            ) {
+                Text(text = "Primijeni")
+            }
+        },
+        dismissButton = {
+            Button(
+                onClick = onDismiss,
+            ) {
+                Text(text = "Odustani")
+            }
+        },
+        // Dodajte elemente za filtriranje ovdje
+    )
 }
-
-
-//            Button(onClick = {
-//                Intent(context, LocationService::class.java).apply {
-//                    action = LocationService.ACTION_STOP
-//                    context.startService(this)
-//                }
-//                viewModel?.logout()
-//                navController!!.navigate(Routes.loginScreen)
-//            }) {
-//                Text(text = "Odjavi se")
-//            }
-//            Spacer(modifier = Modifier.height(20.dp))
-//            Button(onClick = {
-//                Intent(context, LocationService::class.java).apply {
-//                    action = LocationService.ACTION_STOP
-//                    context.startService(this)
-//                }
-//            }) {
-//                Text(text = "Stop")
-//            }

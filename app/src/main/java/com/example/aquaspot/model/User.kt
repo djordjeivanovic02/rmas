@@ -6,5 +6,6 @@ data class CustomUser(
     @DocumentId val id: String = "",
     val fullName: String = "",
     val phoneNumber: String = "",
-    val profileImage: String = ""
+    val profileImage: String = "",
+    val points: Int = 0
 )

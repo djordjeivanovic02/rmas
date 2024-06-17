@@ -33,12 +33,12 @@ class AquaSpotApp : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        val notificationChannel = NotificationChannel(
-            "notification_channel_id",
-            "Notification name",
-            NotificationManager.IMPORTANCE_HIGH
-        )
-        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.createNotificationChannel(notificationChannel)
+//        val notificationChannel = NotificationChannel(
+//            "notification_channel_id",
+//            "Notification name",
+//            NotificationManager.IMPORTANCE_HIGH
+//        )
+//        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+//        notificationManager.createNotificationChannel(notificationChannel)
     }
 }

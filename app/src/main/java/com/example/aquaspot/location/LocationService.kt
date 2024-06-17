@@ -79,11 +79,10 @@ class LocationService : Service() {
             val channel = NotificationChannel(
                 notificationChannelId,
                 "Lokacija",
-                NotificationManager.IMPORTANCE_LOW
+                NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Obaveštavamo vas da se vaša lokacija prati u pozadini"
             }
-
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.createNotificationChannel(channel)
         }
