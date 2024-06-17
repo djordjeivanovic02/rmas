@@ -6,6 +6,7 @@ import com.example.aquaspot.model.CustomUser
 import com.example.aquaspot.utils.await
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.toObject
 
 class DatabaseService(
     private val firestore: FirebaseFirestore
@@ -86,4 +87,5 @@ class DatabaseService(
             Resource.Failure(e)
         }
     }
+
 }

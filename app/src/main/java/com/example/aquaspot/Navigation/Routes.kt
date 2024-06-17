@@ -7,4 +7,5 @@ object Routes {
     val beachScreen = "beachScreen/{beach}"
     val userProfileScreen = "userProfileScreen"
     val tableScreen = "tableScreen"
+    val indexScreenWithParams = "indexScreenWithParams"
 }

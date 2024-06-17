@@ -3,6 +3,8 @@ package com.example.aquaspot.Navigation
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -17,7 +19,10 @@ import com.example.aquaspot.screens.RegisterScreen
 import com.example.aquaspot.screens.TableScreen
 import com.example.aquaspot.screens.UserProfileScreen
 import com.example.aquaspot.viewmodels.BeachViewModel
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
 import com.google.gson.Gson
+import com.google.maps.android.compose.rememberCameraPositionState
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -40,6 +45,28 @@ fun Router(
                 beachViewModel = beachViewModel
             )
         }
+        composable(
+            route = Routes.indexScreenWithParams + "/{isCameraSet}/{latitude}/{longitude}",
+            arguments = listOf(
+                navArgument("isCameraSet") { type = NavType.BoolType },
+                navArgument("latitude") { type = NavType.FloatType },
+                navArgument("longitude") { type = NavType.FloatType }
+            )
+        ) { backStackEntry ->
+            val isCameraSet = backStackEntry.arguments?.getBoolean("isCameraSet")
+            val latitude = backStackEntry.arguments?.getFloat("latitude")
+            val longitude = backStackEntry.arguments?.getFloat("longitude")
+
+            IndexScreen(
+                viewModel = viewModel,
+                navController = navController,
+                beachViewModel = beachViewModel,
+                isCameraSet = remember { mutableStateOf(isCameraSet!!) },
+                cameraPositionState = rememberCameraPositionState {
+                    position = CameraPosition.fromLatLngZoom(LatLng(latitude!!.toDouble(), longitude!!.toDouble()), 17f)
+                }
+            )
+        }
         composable(Routes.registerScreen){
             RegisterScreen(
                 viewModel = viewModel,
@@ -47,7 +74,7 @@ fun Router(
             )
         }
         composable(
-            route = Routes.beachScreen,
+            route = Routes.beachScreen + "/{beach}",
             arguments = listOf(navArgument("beach"){
                 type = NavType.StringType
             })
@@ -65,8 +92,13 @@ fun Router(
                 viewModel = viewModel
             )
         }
-        composable(Routes.tableScreen){
-            TableScreen()
+        composable(
+            route = Routes.tableScreen + "/{beaches}",
+            arguments = listOf(navArgument("beaches") { type = NavType.StringType })
+        ){ backStackEntry ->
+            val beachesJson = backStackEntry.arguments?.getString("beaches")
+            val beaches = Gson().fromJson(beachesJson, Array<Beach>::class.java).toList()
+            TableScreen(beaches = beaches, navController = navController)
         }
     }
 }

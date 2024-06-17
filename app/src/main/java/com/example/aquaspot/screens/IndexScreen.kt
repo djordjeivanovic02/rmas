@@ -99,6 +99,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.gson.Gson
+import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapType
@@ -125,6 +126,12 @@ fun IndexScreen(
     navController: NavController?,
     beachViewModel: BeachViewModel?,
 
+    isCameraSet: MutableState<Boolean> = remember {
+        mutableStateOf(false)
+    },
+    cameraPositionState: CameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(LatLng(43.321445, 21.896104), 17f)
+    }
 ) {
     val beachesResource = beachViewModel?.beaches?.collectAsState()
     val userDataResource = viewModel?.currentUserFlow?.collectAsState()
@@ -163,6 +170,7 @@ fun IndexScreen(
             }
         }
     }
+
     DisposableEffect(context) {
         LocalBroadcastManager.getInstance(context)
             .registerReceiver(receiver, IntentFilter(LocationService.ACTION_LOCATION_UPDATE))
@@ -170,13 +178,7 @@ fun IndexScreen(
             LocalBroadcastManager.getInstance(context).unregisterReceiver(receiver)
         }
     }
-    val nis = LatLng(43.321445, 21.896104)
-    val cameraSet = remember {
-        mutableStateOf(false)
-    }
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(nis, 100f)
-    }
+
     val uiSettings = remember { mutableStateOf(MapUiSettings()) }
     val properties = remember {
         mutableStateOf(MapProperties(mapType = MapType.NORMAL))
@@ -187,16 +189,13 @@ fun IndexScreen(
     LaunchedEffect(myLocation.value) {
         myLocation.value?.let {
             Log.d("Nova lokacija gore", myLocation.toString())
-            if(!cameraSet.value) {
-                cameraPositionState.position = CameraPosition.fromLatLngZoom(it, 20f)
-                cameraSet.value = true
+            if(!isCameraSet.value) {
+                cameraPositionState.position = CameraPosition.fromLatLngZoom(it, 17f)
+                isCameraSet.value = true
             }
             markers.clear()
             markers.add(it)
         }
-    }
-    LaunchedEffect(cameraPositionState.position) {
-        Log.d("Camera", cameraPositionState.position.toString())
     }
 
     val scope = rememberCoroutineScope()
@@ -242,7 +241,7 @@ fun IndexScreen(
                         onClick = {
                             val beachJson = Gson().toJson(marker)
                             val encodedBeachJson = URLEncoder.encode(beachJson, StandardCharsets.UTF_8.toString())
-                            navController?.navigate("beachScreen/$encodedBeachJson")
+                            navController?.navigate(Routes.beachScreen + "/$encodedBeachJson")
                             true
                         }
                     )
@@ -282,7 +281,10 @@ fun IndexScreen(
                     active = 0,
                     onHomeClick = {},
                     onTableClick = {
-                        navController?.navigate(Routes.tableScreen)
+//                        navController?.navigate(Routes.tableScreen)
+                        val beachesJson = Gson().toJson(beachMarkers)
+                        val encodedBeachesJson = URLEncoder.encode(beachesJson, StandardCharsets.UTF_8.toString())
+                        navController?.navigate("tableScreen/$encodedBeachesJson")
                     },
                     onRankingClick = {},
                     onSettingsClick = {}
