@@ -3,6 +3,7 @@ package com.example.aquaspot.model.service
 import com.example.aquaspot.data.Resource
 import com.example.aquaspot.model.Beach
 import com.example.aquaspot.model.CustomUser
+import com.example.aquaspot.model.Rate
 import com.example.aquaspot.utils.await
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.FirebaseFirestore
@@ -82,6 +83,32 @@ class DatabaseService(
         return try{
             firestore.collection("beaches").add(beach).await()
             Resource.Success("Uspešno sačuvani podaci o plaži")
+        }catch(e: Exception){
+            e.printStackTrace()
+            Resource.Failure(e)
+        }
+    }
+
+    suspend fun saveRateData(
+        rate: Rate
+    ): Resource<String>{
+        return try{
+            val result = firestore.collection("rates").add(rate).await()
+            Resource.Success(result.id)
+        }catch(e: Exception){
+            e.printStackTrace()
+            Resource.Failure(e)
+        }
+    }
+
+    suspend fun updateRate(
+        rid: String,
+        rate: Int
+    ): Resource<String>{
+        return try{
+            val documentRef = firestore.collection("rates").document(rid)
+            documentRef.update("rate", rate).await()
+            Resource.Success(rid)
         }catch(e: Exception){
             e.printStackTrace()
             Resource.Failure(e)

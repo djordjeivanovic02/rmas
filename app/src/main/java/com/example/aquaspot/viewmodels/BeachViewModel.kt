@@ -6,8 +6,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.aquaspot.data.BeachRepositoryImpl
+import com.example.aquaspot.data.RateRepositoryImpl
 import com.example.aquaspot.data.Resource
 import com.example.aquaspot.model.Beach
+import com.example.aquaspot.model.Rate
 import com.example.aquaspot.model.service.DatabaseService
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseUser
@@ -17,12 +19,19 @@ import kotlinx.coroutines.launch
 
 class BeachViewModel: ViewModel() {
     val repository = BeachRepositoryImpl()
+    val rateRepository = RateRepositoryImpl()
 
     private val _beachFlow = MutableStateFlow<Resource<String>?>(null)
     val beachFlow: StateFlow<Resource<String>?> = _beachFlow
 
+    private val _newRate = MutableStateFlow<Resource<String>?>(null)
+    val newRate: StateFlow<Resource<String>?> = _newRate
+
     private val _beaches = MutableStateFlow<Resource<List<Beach>>>(Resource.Success(emptyList()))
     val beaches: StateFlow<Resource<List<Beach>>> get() = _beaches
+
+    private val _rates = MutableStateFlow<Resource<List<Rate>>>(Resource.Success(emptyList()))
+    val rates: StateFlow<Resource<List<Rate>>> get() = _rates
 
     init {
         getAllBeaches()
@@ -48,6 +57,30 @@ class BeachViewModel: ViewModel() {
             location = location.value!!
         )
         _beachFlow.value = Resource.Success("Uspešno dodata plaža")
+    }
+
+
+    fun getBeachAllRates(
+        bid: String
+    ) = viewModelScope.launch {
+        _rates.value = Resource.loading
+        val result = rateRepository.getBeachRates(bid)
+        _rates.value = result
+    }
+
+    fun addRate(
+        bid: String,
+        rate: Int,
+        beach: Beach
+    ) = viewModelScope.launch {
+        _newRate.value = rateRepository.addRate(bid, rate, beach)
+    }
+
+    fun updateRate(
+        rid: String,
+        rate: Int
+    ) = viewModelScope.launch{
+        _newRate.value = rateRepository.updateRate(rid, rate)
     }
 }
 

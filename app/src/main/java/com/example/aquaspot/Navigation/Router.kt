@@ -81,9 +81,12 @@ fun Router(
         ){backStackEntry ->
             val beachJson = backStackEntry.arguments?.getString("beach")
             val beach = Gson().fromJson(beachJson, Beach::class.java)
+            beachViewModel.getBeachAllRates(beach.id)
             BeachScreen(
                 beach = beach,
-                navController = navController
+                navController = navController,
+                beachViewModel = beachViewModel,
+                viewModel = viewModel
             )
         }
         composable(Routes.userProfileScreen){

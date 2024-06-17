@@ -28,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -174,7 +175,8 @@ fun CustomBeachGallery(
 
 @Composable
 fun CustomRateButton(
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    enabled: Boolean
 ){
     Button(
         onClick = onClick,
@@ -182,6 +184,7 @@ fun CustomRateButton(
             .fillMaxWidth()
             .height(60.dp)
             .background(mainColor, RoundedCornerShape(30.dp)),
+        enabled = enabled,
         colors = ButtonDefaults.buttonColors(
             containerColor = mainColor,
             contentColor = Color.Black,
