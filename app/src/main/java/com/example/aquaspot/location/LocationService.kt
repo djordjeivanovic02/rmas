@@ -49,6 +49,8 @@ class LocationService : Service() {
         when(intent?.action){
             ACTION_START -> {
                 Log.d("LocationService", "Service started")
+                val notification = createNotification()
+                startForeground(NOTIFICATION_ID, notification)
                 start()
             }
             ACTION_STOP -> {
@@ -57,6 +59,8 @@ class LocationService : Service() {
             }
             ACTION_FIND_NEARBY -> {
                 Log.d("NearbyService", "Service started")
+                val notification = createNotification()
+                startForeground(NOTIFICATION_ID, notification)
                 start(nearby = true)
             }
         }
@@ -66,11 +70,6 @@ class LocationService : Service() {
     private fun start(
         nearby: Boolean = false
     ) {
-        if(nearby) {
-            val notification = createNotification()
-            startForeground(NOTIFICATION_ID, notification)
-        }
-
         locationClient.getLocationUpdates(1000L)
             .catch { e -> e.printStackTrace() }
             .onEach { location ->
@@ -125,7 +124,7 @@ class LocationService : Service() {
 
         return NotificationCompat.Builder(this, notificationChannelId)
             .setContentTitle("Praćenje lokacije")
-            .setContentText("Servis praćenja lokacije je pokrenut u pozadini kako bi se proverilo da li ste u blizini neke plaže")
+            .setContentText("Servis praćenja lokacije je pokrenut u pozadini")
             .setSmallIcon(R.drawable.logo)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
@@ -152,7 +151,7 @@ class LocationService : Service() {
             }
     }
     private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
-        val earthRadius = 6371000.0 // meters
+        val earthRadius = 6371000.0
 
         val dLat = Math.toRadians(lat2 - lat1)
         val dLon = Math.toRadians(lon2 - lon1)

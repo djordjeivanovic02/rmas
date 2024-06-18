@@ -39,6 +39,10 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.IconButton
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.material.icons.filled.SatelliteAlt
+import androidx.compose.material.icons.filled.Terrain
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -87,6 +91,8 @@ import com.example.aquaspot.screens.components.bitmapDescriptorFromUrlWithRounde
 import com.example.aquaspot.screens.components.bitmapDescriptorFromVector
 import com.example.aquaspot.screens.components.mapFooter
 import com.example.aquaspot.screens.components.mapNavigationBar
+import com.example.aquaspot.ui.theme.greyTextColor
+import com.example.aquaspot.ui.theme.mainColor
 import com.example.aquaspot.viewmodels.AuthViewModel
 import com.example.aquaspot.viewmodels.BeachViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -187,9 +193,11 @@ fun IndexScreen(
     }
 
     val uiSettings = remember { mutableStateOf(MapUiSettings()) }
+
     val properties = remember {
-        mutableStateOf(MapProperties(mapType = MapType.NORMAL))
+        mutableStateOf(MapProperties(mapType = MapType.TERRAIN))
     }
+
     val markers = remember { mutableStateListOf<LatLng>() }
     val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
 
@@ -231,7 +239,7 @@ fun IndexScreen(
                         state = rememberMarkerState(position = marker),
                         title = "Moja Lokacija",
                         icon = icon,
-                        snippet = "Marker in Singapore",
+                        snippet = "",
                     )
                 }
 
@@ -265,7 +273,9 @@ fun IndexScreen(
                     searchValue = searchValue,
                     profileImage = profileImage.value.ifEmpty { "" },
                     onImageClick = {
-                        navController?.navigate(Routes.userProfileScreen)
+                        val userJson = Gson().toJson(userData.value)
+                        val encodedUserJson = URLEncoder.encode(userJson, StandardCharsets.UTF_8.toString())
+                        navController?.navigate(Routes.userProfileScreen + "/$encodedUserJson")
                     }
                 )
                 Spacer(modifier = Modifier.height(10.dp))
@@ -280,6 +290,60 @@ fun IndexScreen(
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
             ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.End
+                ) {
+                    IconButton(
+                        onClick = {
+                            properties.value = MapProperties(mapType = MapType.TERRAIN)
+                        },
+                        modifier = Modifier
+                            .background(
+                                if(properties.value == MapProperties(mapType = MapType.TERRAIN))
+                                    mainColor
+                                else
+                                    Color.White
+                                ,RoundedCornerShape(30.dp)
+                            )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.SatelliteAlt,
+                            contentDescription = "",
+                            tint =
+                            if(properties.value == MapProperties(mapType = MapType.TERRAIN))
+                                Color.White
+                            else
+                                greyTextColor
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(5.dp))
+                    IconButton(
+                        onClick = {
+                            properties.value = MapProperties(mapType = MapType.SATELLITE)
+                        },
+                        modifier = Modifier
+                            .background(
+                                if(properties.value == MapProperties(mapType = MapType.SATELLITE))
+                                    mainColor
+                                else
+                                    Color.White
+                                ,RoundedCornerShape(30.dp)
+                            )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Terrain,
+                            contentDescription = "",
+                            tint =
+                            if(properties.value == MapProperties(mapType = MapType.SATELLITE))
+                                Color.White
+                            else
+                                greyTextColor
+                        )
+                    }
+                }
                 mapFooter(
                     openAddNewBeach = {
                         scope.launch {

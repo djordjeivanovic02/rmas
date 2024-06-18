@@ -1,6 +1,7 @@
 package com.example.aquaspot.Navigation
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -11,6 +12,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.aquaspot.model.Beach
+import com.example.aquaspot.model.CustomUser
 import com.example.aquaspot.screens.BeachScreen
 import com.example.aquaspot.screens.IndexScreen
 import com.example.aquaspot.viewmodels.AuthViewModel
@@ -90,10 +92,19 @@ fun Router(
                 viewModel = viewModel
             )
         }
-        composable(Routes.userProfileScreen){
+        composable(
+            route = Routes.userProfileScreen + "/{userData}",
+            arguments = listOf(navArgument("userData"){
+                type = NavType.StringType
+            })
+        ){backStackEntry ->
+            val userDataJson = backStackEntry.arguments?.getString("userData")
+            val userData = Gson().fromJson(userDataJson, CustomUser::class.java)
             UserProfileScreen(
                 navController = navController,
-                viewModel = viewModel
+                viewModel = viewModel,
+                beachViewModel = beachViewModel,
+                userData = userData
             )
         }
         composable(
@@ -102,7 +113,7 @@ fun Router(
         ){ backStackEntry ->
             val beachesJson = backStackEntry.arguments?.getString("beaches")
             val beaches = Gson().fromJson(beachesJson, Array<Beach>::class.java).toList()
-            TableScreen(beaches = beaches, navController = navController)
+            TableScreen(beaches = beaches, navController = navController, beachViewModel = beachViewModel)
         }
         
         composable(Routes.settingsScreen){

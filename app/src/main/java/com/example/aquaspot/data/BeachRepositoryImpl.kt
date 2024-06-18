@@ -64,4 +64,18 @@ class BeachRepositoryImpl : BeachRepository {
             Resource.Failure(e)
         }
     }
+
+    override suspend fun getUserBeaches(uid: String): Resource<List<Beach>> {
+        return try {
+            val snapshot = firestoreInstance.collection("beaches")
+                .whereEqualTo("userId", uid)
+                .get()
+                .await()
+            val beaches = snapshot.toObjects(Beach::class.java)
+            Resource.Success(beaches)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Resource.Failure(e)
+        }
+    }
 }

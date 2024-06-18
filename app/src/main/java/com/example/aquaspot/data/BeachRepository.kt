@@ -15,4 +15,8 @@ interface BeachRepository {
         galleryImages: List<Uri>,
         location: LatLng
     ): Resource<String>
+
+    suspend fun getUserBeaches(
+        uid: String
+    ): Resource<List<Beach>>
 }

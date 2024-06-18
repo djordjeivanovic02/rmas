@@ -33,6 +33,10 @@ class BeachViewModel: ViewModel() {
     private val _rates = MutableStateFlow<Resource<List<Rate>>>(Resource.Success(emptyList()))
     val rates: StateFlow<Resource<List<Rate>>> get() = _rates
 
+
+    private val _userBeaches = MutableStateFlow<Resource<List<Beach>>>(Resource.Success(emptyList()))
+    val userBeaches: StateFlow<Resource<List<Beach>>> get() = _userBeaches
+
     init {
         getAllBeaches()
     }
@@ -81,6 +85,12 @@ class BeachViewModel: ViewModel() {
         rate: Int
     ) = viewModelScope.launch{
         _newRate.value = rateRepository.updateRate(rid, rate)
+    }
+
+    fun getUserBeaches(
+        uid: String
+    ) = viewModelScope.launch {
+        _userBeaches.value = repository.getUserBeaches(uid)
     }
 }
 
