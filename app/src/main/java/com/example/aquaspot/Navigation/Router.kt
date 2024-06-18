@@ -16,6 +16,7 @@ import com.example.aquaspot.screens.IndexScreen
 import com.example.aquaspot.viewmodels.AuthViewModel
 import com.example.aquaspot.screens.LoginScreen
 import com.example.aquaspot.screens.RegisterScreen
+import com.example.aquaspot.screens.SettingScreen
 import com.example.aquaspot.screens.TableScreen
 import com.example.aquaspot.screens.UserProfileScreen
 import com.example.aquaspot.viewmodels.BeachViewModel
@@ -102,6 +103,10 @@ fun Router(
             val beachesJson = backStackEntry.arguments?.getString("beaches")
             val beaches = Gson().fromJson(beachesJson, Array<Beach>::class.java).toList()
             TableScreen(beaches = beaches, navController = navController)
+        }
+        
+        composable(Routes.settingsScreen){
+            SettingScreen(navController = navController)
         }
     }
 }

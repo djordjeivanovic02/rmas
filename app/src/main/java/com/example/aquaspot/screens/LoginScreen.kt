@@ -1,5 +1,6 @@
 package com.example.aquaspot.screens
 
+import android.content.Intent
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -35,6 +36,7 @@ import com.example.aquaspot.Navigation.Routes
 import com.example.aquaspot.R
 import com.example.aquaspot.data.Resource
 import com.example.aquaspot.exceptions.AuthExceptionsMessages
+import com.example.aquaspot.location.LocationService
 import com.example.aquaspot.screens.components.customAuthError
 import com.example.aquaspot.screens.components.customClickableText
 import com.example.aquaspot.screens.components.customPasswordInput
@@ -66,6 +68,8 @@ fun LoginScreen(
 
     val buttonIsEnabled = remember { mutableStateOf(true) }
     val isLoading = remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier

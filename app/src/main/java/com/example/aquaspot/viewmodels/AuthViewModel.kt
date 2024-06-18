@@ -39,7 +39,6 @@ class AuthViewModel(): ViewModel(){
     init {
         if(repository.currentUser != null){
             _loginFlow.value = Resource.Success(repository.currentUser!!)
-            getUserData()
         }
     }
 
@@ -58,10 +57,11 @@ class AuthViewModel(): ViewModel(){
         repository.logout()
         _loginFlow.value = null
         _registerFlow.value = null
+        _currentUserFlow.value = null
     }
 }
 
-class AuthViewModelFactory(): ViewModelProvider.Factory{
+class AuthViewModelFactory: ViewModelProvider.Factory{
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if(modelClass.isAssignableFrom(AuthViewModel::class.java)){
             return AuthViewModel() as T

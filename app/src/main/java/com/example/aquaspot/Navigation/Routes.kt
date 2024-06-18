@@ -8,4 +8,5 @@ object Routes {
     val userProfileScreen = "userProfileScreen"
     val tableScreen = "tableScreen"
     val indexScreenWithParams = "indexScreenWithParams"
+    val settingsScreen = "settingsScreen"
 }

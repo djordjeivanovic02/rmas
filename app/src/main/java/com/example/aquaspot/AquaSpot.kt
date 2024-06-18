@@ -2,6 +2,7 @@ package com.example.aquaspot
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -25,6 +26,9 @@ fun AquaSpot(
     beachViewModel: BeachViewModel
 ){
     val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    val isTrackingServiceEnabled = sharedPreferences.getBoolean("tracking_location", true)
+
     if (ActivityCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_FINE_LOCATION
@@ -35,25 +39,29 @@ fun AquaSpot(
     ) {
         ActivityCompat.requestPermissions(
             context as Activity,
-            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
+            arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ),
             1
         )
-        Intent(context, LocationService::class.java).apply {
-            action = LocationService.ACTION_START
-//            context.startService(this)
-            context.startForegroundService(this)
-        }
     } else {
-        Intent(context, LocationService::class.java).apply {
-            action = LocationService.ACTION_START
-//            context.startService(this)
-            context.startForegroundService(this)
+        if(isTrackingServiceEnabled) {
+            Intent(context, LocationService::class.java).apply {
+                action = LocationService.ACTION_FIND_NEARBY
+                context.startForegroundService(this)
+            }
+        }else{
+            Intent(context, LocationService::class.java).apply {
+                action = LocationService.ACTION_START
+                context.startForegroundService(this)
+            }
         }
 
     }
 
+
     Surface(modifier = Modifier.fillMaxSize()) {
         Router(viewModel, beachViewModel)
-//        Router(viewModel = viewModel)
     }
 }

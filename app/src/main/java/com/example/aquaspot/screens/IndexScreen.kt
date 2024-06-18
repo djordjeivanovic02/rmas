@@ -133,6 +133,8 @@ fun IndexScreen(
         position = CameraPosition.fromLatLngZoom(LatLng(43.321445, 21.896104), 17f)
     }
 ) {
+    viewModel?.getUserData()
+
     val beachesResource = beachViewModel?.beaches?.collectAsState()
     val userDataResource = viewModel?.currentUserFlow?.collectAsState()
 
@@ -142,6 +144,11 @@ fun IndexScreen(
     val userData = remember {
         mutableStateOf<CustomUser?>(null)
     }
+    val profileImage = remember {
+        mutableStateOf("")
+    }
+
+
     val context = LocalContext.current
     val myLocation = remember {
         mutableStateOf<LatLng?>(null)
@@ -185,6 +192,7 @@ fun IndexScreen(
     }
     val markers = remember { mutableStateListOf<LatLng>() }
     val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+
 
     LaunchedEffect(myLocation.value) {
         myLocation.value?.let {
@@ -255,7 +263,7 @@ fun IndexScreen(
             ) {
                 mapNavigationBar(
                     searchValue = searchValue,
-                    profileImage = if(userData.value != null) userData.value!!.profileImage else "",
+                    profileImage = profileImage.value.ifEmpty { "" },
                     onImageClick = {
                         navController?.navigate(Routes.userProfileScreen)
                     }
@@ -287,7 +295,9 @@ fun IndexScreen(
                         navController?.navigate("tableScreen/$encodedBeachesJson")
                     },
                     onRankingClick = {},
-                    onSettingsClick = {}
+                    onSettingsClick = {
+                        navController?.navigate(Routes.settingsScreen)
+                    }
                 )
             }
         }
@@ -303,10 +313,15 @@ fun IndexScreen(
        when(it){
            is Resource.Success -> {
                userData.value = it.result
+               profileImage.value = it.result.profileImage
            }
-           null -> {}
-           is Resource.Failure -> TODO()
-           Resource.loading -> TODO()
+           null -> {
+               userData.value = null
+               profileImage.value = ""
+           }
+
+           is Resource.Failure -> {}
+           Resource.loading -> {}
        }
    }
 

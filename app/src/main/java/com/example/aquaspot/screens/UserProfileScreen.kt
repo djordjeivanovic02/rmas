@@ -23,10 +23,7 @@ fun UserProfileScreen(
     val context = LocalContext.current
     Column {
         Button(onClick = {
-//            Intent(context, LocationService::class.java).apply {
-//                action = LocationService.ACTION_STOP
-//                context.startService(this)
-//            }
+
             viewModel.logout()
             navController.navigate(Routes.loginScreen)
         }) {
