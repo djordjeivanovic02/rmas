@@ -2,6 +2,8 @@ package com.example.aquaspot.model
 
 import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.GeoPoint
+import com.google.firebase.firestore.ServerTimestamp
+import java.util.Date
 
 data class Beach(
     @DocumentId val id: String = "",

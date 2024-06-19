@@ -33,11 +33,14 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -45,6 +48,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.MailOutline
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.FormatListNumbered
@@ -82,6 +86,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -89,7 +96,9 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -106,11 +115,15 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.navigation.NavController
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.AsyncImage
 import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
+import com.example.aquaspot.Navigation.Routes
 import com.example.aquaspot.R
+import com.example.aquaspot.model.Beach
+import com.example.aquaspot.screens.filters.searchBeachesByDescription
 import com.example.aquaspot.ui.theme.buttonDisabledColor
 import com.example.aquaspot.ui.theme.greyTextColor
 import com.example.aquaspot.ui.theme.lightMailColor
@@ -123,6 +136,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.gson.Gson
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
@@ -136,6 +150,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 import java.net.URL
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @Composable
 fun loginImage(){
@@ -624,15 +640,32 @@ fun mapNavigationBar(
     searchValue: MutableState<String>,
     profileImage: String,
     onImageClick: () -> Unit,
+    beaches: MutableList<Beach>,
+    navController: NavController?,
+    cameraPositionState: CameraPositionState
 ){
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val searchList = remember{
+        mutableListOf<Beach>()
+    }
+
+    searchList.clear()
+    searchList.addAll(searchBeachesByDescription(beaches, searchValue.value).toMutableList())
+
+    val focusRequester = remember{
+        FocusRequester()
+    }
+
+    val isFocused = remember {
+        mutableStateOf(false)
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(50.dp)
     ){
         Box(
             modifier = Modifier
-                .fillMaxHeight()
                 .weight(1f)
                 .shadow(
                     6.dp,
@@ -649,9 +682,16 @@ fun mapNavigationBar(
                 )
         ){
             OutlinedTextField(
+                modifier = Modifier
+                    .height(50.dp)
+                    .focusRequester(focusRequester = focusRequester)
+                    .onFocusChanged { focusState ->
+                        isFocused.value = focusState.isFocused
+                    },
                 value = searchValue.value,
                 onValueChange = { newValue ->
                     searchValue.value = newValue
+                    isFocused.value = true
                 },
                 singleLine = true,
                 placeholder = {
@@ -663,23 +703,98 @@ fun mapNavigationBar(
                     )
                 },
                 leadingIcon = {
-                    Icon(imageVector = Icons.Outlined.Search,
+                    Icon(
+                        imageVector = Icons.Outlined.Search,
                         contentDescription = "",
-                        tint = mainColor)
+                        tint = mainColor
+                    )
                 },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color.Transparent,
                     unfocusedBorderColor = Color.Transparent,
                 ),
                 visualTransformation = VisualTransformation.None,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                keyboardOptions = KeyboardOptions.Default
             )
+            if(isFocused.value) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(top = 60.dp)
+                        .background(Color.White),
+                ) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 300.dp)
+                    ) {
+                        for (beach in searchList) {
+                            item {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth()
+                                        .clickable {
+                                            val beachJson = Gson().toJson(beach)
+                                            val encodedBeachJson = URLEncoder.encode(beachJson, StandardCharsets.UTF_8.toString())
+                                            navController?.navigate(Routes.beachScreen + "/$encodedBeachJson")
+                                        },
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .padding(vertical = 8.dp)
+                                            .weight(1f),  // Dodajte weight da osigurate da ovaj Row zauzima prostor proporcionalno
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        AsyncImage(
+                                            model = beach.mainImage,
+                                            contentDescription = "",
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier
+                                                .width(40.dp)
+                                                .height(40.dp)
+                                                .clip(RoundedCornerShape(10.dp))
+                                        )
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Text(
+                                            text = if (beach.description.length > 26) {
+                                                beach.description.substring(0, 26) + "..."
+                                            } else {
+                                                beach.description
+                                            }
+                                        )
+                                    }
+
+                                    IconButton(
+                                        onClick = {
+                                            isFocused.value = false
+                                            keyboardController?.hide()
+                                            cameraPositionState.position = CameraPosition.fromLatLngZoom(LatLng(beach.location.latitude, beach.location.longitude), 17f)
+                                        },
+                                        modifier = Modifier  // Dodajte modifier da osigurate da IconButton zauzima minimum potreban prostor
+                                            .wrapContentWidth()
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.MyLocation,
+                                            contentDescription = "",
+                                            tint = mainColor
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                }
+            }
+
         }
         Spacer(modifier = Modifier.width(10.dp))
         Box(
             modifier = Modifier
-                .fillMaxHeight()
                 .width(50.dp)
+                .height(50.dp)
                 .shadow(
                     6.dp,
                     shape = RoundedCornerShape(20.dp)
@@ -1020,7 +1135,8 @@ fun CustomGalleryForAddNewBeach(
                     model = uri,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
                         .clip(RoundedCornerShape(10.dp))
                 )
             }

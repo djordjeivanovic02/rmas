@@ -4,6 +4,7 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.navigation.NavType
@@ -11,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.aquaspot.data.Resource
 import com.example.aquaspot.model.Beach
 import com.example.aquaspot.model.CustomUser
 import com.example.aquaspot.screens.BeachScreen
@@ -44,10 +46,30 @@ fun Router(
             )
         }
         composable(Routes.indexScreen){
+            val beachesResource = beachViewModel.beaches.collectAsState()
+            val beachMarkers = remember {
+                mutableListOf<Beach>()
+            }
+            beachesResource.value.let {
+                when(it){
+                    is Resource.Success -> {
+                        beachMarkers.clear()
+                        beachMarkers.addAll(it.result)
+                    }
+                    is Resource.loading -> {
+
+                    }
+                    is Resource.Failure -> {
+                        Log.e("Podaci", it.toString())
+                    }
+                    null -> {}
+                }
+            }
             IndexScreen(
                 viewModel = viewModel,
                 navController = navController,
-                beachViewModel = beachViewModel
+                beachViewModel = beachViewModel,
+                beachMarkers = beachMarkers
             )
         }
         composable(
@@ -62,6 +84,26 @@ fun Router(
             val latitude = backStackEntry.arguments?.getFloat("latitude")
             val longitude = backStackEntry.arguments?.getFloat("longitude")
 
+            val beachesResource = beachViewModel.beaches.collectAsState()
+            val beachMarkers = remember {
+                mutableListOf<Beach>()
+            }
+            beachesResource.value.let {
+                when(it){
+                    is Resource.Success -> {
+                        beachMarkers.clear()
+                        beachMarkers.addAll(it.result)
+                    }
+                    is Resource.loading -> {
+
+                    }
+                    is Resource.Failure -> {
+                        Log.e("Podaci", it.toString())
+                    }
+                    null -> {}
+                }
+            }
+
             IndexScreen(
                 viewModel = viewModel,
                 navController = navController,
@@ -69,7 +111,49 @@ fun Router(
                 isCameraSet = remember { mutableStateOf(isCameraSet!!) },
                 cameraPositionState = rememberCameraPositionState {
                     position = CameraPosition.fromLatLngZoom(LatLng(latitude!!.toDouble(), longitude!!.toDouble()), 17f)
-                }
+                },
+                beachMarkers = beachMarkers
+            )
+        }
+        composable(
+            route = Routes.indexScreenWithParams + "/{isCameraSet}/{latitude}/{longitude}/{beaches}",
+            arguments = listOf(
+                navArgument("isCameraSet") { type = NavType.BoolType },
+                navArgument("latitude") { type = NavType.FloatType },
+                navArgument("longitude") { type = NavType.FloatType },
+                navArgument("beaches") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val isCameraSet = backStackEntry.arguments?.getBoolean("isCameraSet")
+            val latitude = backStackEntry.arguments?.getFloat("latitude")
+            val longitude = backStackEntry.arguments?.getFloat("longitude")
+            val beachesJson = backStackEntry.arguments?.getString("beaches")
+            val beaches = Gson().fromJson(beachesJson, Array<Beach>::class.java).toList()
+
+            IndexScreen(
+                viewModel = viewModel,
+                navController = navController,
+                beachViewModel = beachViewModel,
+                isCameraSet = remember { mutableStateOf(isCameraSet!!) },
+                cameraPositionState = rememberCameraPositionState {
+                    position = CameraPosition.fromLatLngZoom(LatLng(latitude!!.toDouble(), longitude!!.toDouble()), 17f)
+                },
+                beachMarkers = beaches.toMutableList()
+            )
+        }
+        composable(
+            route = Routes.indexScreenWithParams + "/{beaches}",
+            arguments = listOf(
+                navArgument("beaches") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val beachesJson = backStackEntry.arguments?.getString("beaches")
+            val beaches = Gson().fromJson(beachesJson, Array<Beach>::class.java).toList()
+            IndexScreen(
+                viewModel = viewModel,
+                navController = navController,
+                beachViewModel = beachViewModel,
+                beachMarkers = beaches.toMutableList()
             )
         }
         composable(Routes.registerScreen){
@@ -80,9 +164,9 @@ fun Router(
         }
         composable(
             route = Routes.beachScreen + "/{beach}",
-            arguments = listOf(navArgument("beach"){
-                type = NavType.StringType
-            })
+            arguments = listOf(
+                navArgument("beach"){ type = NavType.StringType }
+            )
         ){backStackEntry ->
             val beachJson = backStackEntry.arguments?.getString("beach")
             val beach = Gson().fromJson(beachJson, Beach::class.java)
@@ -91,7 +175,29 @@ fun Router(
                 beach = beach,
                 navController = navController,
                 beachViewModel = beachViewModel,
-                viewModel = viewModel
+                viewModel = viewModel,
+                beaches = null
+            )
+        }
+        composable(
+            route = Routes.beachScreen + "/{beach}/{beaches}",
+            arguments = listOf(
+                navArgument("beach"){ type = NavType.StringType },
+                navArgument("beaches"){ type = NavType.StringType },
+            )
+        ){backStackEntry ->
+            val beachesJson = backStackEntry.arguments?.getString("beaches")
+            val beaches = Gson().fromJson(beachesJson, Array<Beach>::class.java).toList()
+            val beachJson = backStackEntry.arguments?.getString("beach")
+            val beach = Gson().fromJson(beachJson, Beach::class.java)
+            beachViewModel.getBeachAllRates(beach.id)
+
+            BeachScreen(
+                beach = beach,
+                navController = navController,
+                beachViewModel = beachViewModel,
+                viewModel = viewModel,
+                beaches = beaches.toMutableList()
             )
         }
         composable(

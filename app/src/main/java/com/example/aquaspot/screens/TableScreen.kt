@@ -34,7 +34,10 @@ import com.example.aquaspot.screens.components.mapFooter
 import com.example.aquaspot.screens.components.mapNavigationBar
 import com.example.aquaspot.ui.theme.lightMailColor
 import com.example.aquaspot.viewmodels.BeachViewModel
+import com.google.gson.Gson
 import kotlinx.coroutines.launch
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @Composable
 fun TableScreen(
@@ -105,7 +108,9 @@ fun TableScreen(
                 openAddNewBeach = {},
                 active = 1,
                 onHomeClick = {
-                    navController.navigate(Routes.indexScreen)
+                    val beachesJson = Gson().toJson(beaches)
+                    val encodedBeachesJson = URLEncoder.encode(beachesJson, StandardCharsets.UTF_8.toString())
+                    navController.navigate(Routes.indexScreenWithParams + "/$encodedBeachesJson")
                 },
                 onTableClick = {
                 },

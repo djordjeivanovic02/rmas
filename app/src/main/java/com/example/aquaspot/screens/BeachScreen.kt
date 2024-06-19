@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.aquaspot.Navigation.Routes
 import com.example.aquaspot.data.Resource
 import com.example.aquaspot.model.Beach
 import com.example.aquaspot.model.Rate
@@ -41,14 +42,18 @@ import com.example.aquaspot.screens.dialogs.RateBeachDialog
 import com.example.aquaspot.viewmodels.AuthViewModel
 import com.example.aquaspot.viewmodels.BeachViewModel
 import com.google.android.gms.maps.model.LatLng
+import com.google.gson.Gson
 import java.math.RoundingMode
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @Composable
 fun BeachScreen(
     navController: NavController,
     beachViewModel: BeachViewModel,
     beach: Beach,
-    viewModel: AuthViewModel
+    viewModel: AuthViewModel,
+    beaches: MutableList<Beach>?
 ){
     val ratesResources = beachViewModel.rates.collectAsState()
     val newRateResource = beachViewModel.newRate.collectAsState()
@@ -80,7 +85,17 @@ fun BeachScreen(
                 .padding(16.dp)
         ) {
             item{ CustomBackButton {
-                navController.popBackStack()
+                if(beaches == null) {
+                    navController.popBackStack()
+                }else{
+                    val isCameraSet = true
+                    val latitude = beach.location.latitude
+                    val longitude = beach.location.longitude
+
+                    val beachesJson = Gson().toJson(beaches)
+                    val encodedBeachesJson = URLEncoder.encode(beachesJson, StandardCharsets.UTF_8.toString())
+                    navController.navigate(Routes.indexScreenWithParams + "/$isCameraSet/$latitude/$longitude/$encodedBeachesJson")
+                }
             }}
             item{Spacer(modifier = Modifier.height(220.dp))}
             item{ CustomCrowdIndicator(crowd = beach.crowd)}

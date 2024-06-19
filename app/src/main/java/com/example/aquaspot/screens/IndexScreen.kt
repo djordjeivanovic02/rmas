@@ -87,6 +87,7 @@ import com.example.aquaspot.location.LocationService
 import com.example.aquaspot.model.Beach
 import com.example.aquaspot.model.CustomUser
 import com.example.aquaspot.screens.beachs.AddNewBeachBottomSheet
+import com.example.aquaspot.screens.beachs.FiltersBottomSheet
 import com.example.aquaspot.screens.components.bitmapDescriptorFromUrlWithRoundedCorners
 import com.example.aquaspot.screens.components.bitmapDescriptorFromVector
 import com.example.aquaspot.screens.components.mapFooter
@@ -114,6 +115,7 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerInfoWindow
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
+import com.google.maps.android.ktx.model.cameraPosition
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -137,12 +139,21 @@ fun IndexScreen(
     },
     cameraPositionState: CameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(LatLng(43.321445, 21.896104), 17f)
-    }
+    },
+    beachMarkers: MutableList<Beach>
 ) {
+    val context = LocalContext.current
+
     viewModel?.getUserData()
 
-    val beachesResource = beachViewModel?.beaches?.collectAsState()
     val userDataResource = viewModel?.currentUserFlow?.collectAsState()
+
+    val filteredBeaches = remember {
+        mutableListOf<Beach>()
+    }
+    val isFiltered = remember {
+        mutableStateOf(false)
+    }
 
     val searchValue = remember {
         mutableStateOf("")
@@ -154,18 +165,18 @@ fun IndexScreen(
         mutableStateOf("")
     }
 
-
-    val context = LocalContext.current
     val myLocation = remember {
         mutableStateOf<LatLng?>(null)
     }
 
-    val beachMarkers = remember {
-        mutableStateListOf<Beach>()
-    }
+    val beachMarkerCopy = beachMarkers
 
     val showFilterDialog = remember {
         mutableStateOf(false)
+    }
+
+    val isAddNewBottomSheet = remember {
+        mutableStateOf(true)
     }
     
     val receiver = remember {
@@ -219,7 +230,10 @@ fun IndexScreen(
     ModalBottomSheetLayout(
         sheetState = sheetState,
         sheetContent = {
-            AddNewBeachBottomSheet(beachViewModel!!, myLocation, sheetState)
+            if(isAddNewBottomSheet.value)
+                AddNewBeachBottomSheet(beachViewModel!!, myLocation, sheetState)
+            else
+                FiltersBottomSheet(beachViewModel!!, viewModel!!, beachMarkers, sheetState, isFiltered, filteredBeaches)
         },
         sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
         modifier = Modifier.fillMaxSize()
@@ -242,25 +256,68 @@ fun IndexScreen(
                         snippet = "",
                     )
                 }
+                Log.d("Is Filtered", isFiltered.value.toString())
+                if(!isFiltered.value) {
+                    beachMarkers.forEach { marker ->
+                        val icon = bitmapDescriptorFromUrlWithRoundedCorners(
+                            context,
+                            marker.mainImage,
+                            10f,
+                        )
+                        Marker(
+                            state = rememberMarkerState(
+                                position = LatLng(
+                                    marker.location.latitude,
+                                    marker.location.longitude
+                                )
+                            ),
+                            title = "Moja Lokacija",
+                            icon = icon.value ?: BitmapDescriptorFactory.defaultMarker(),
+                            snippet = marker.description,
+                            onClick = {
+                                val beachJson = Gson().toJson(marker)
+                                val encodedBeachJson =
+                                    URLEncoder.encode(beachJson, StandardCharsets.UTF_8.toString())
 
-                beachMarkers.forEach { marker ->
-                    val icon = bitmapDescriptorFromUrlWithRoundedCorners(
-                        context,
-                        marker.mainImage,
-                        10f,
-                    )
-                    Marker(
-                        state = rememberMarkerState(position = LatLng(marker.location.latitude, marker.location.longitude)),
-                        title = "Moja Lokacija",
-                        icon = icon.value ?: BitmapDescriptorFactory.defaultMarker(),
-                        snippet = marker.description,
-                        onClick = {
-                            val beachJson = Gson().toJson(marker)
-                            val encodedBeachJson = URLEncoder.encode(beachJson, StandardCharsets.UTF_8.toString())
-                            navController?.navigate(Routes.beachScreen + "/$encodedBeachJson")
-                            true
-                        }
-                    )
+                                val beachesJson = Gson().toJson(beachMarkers)
+                                val encodedBeachesJson = URLEncoder.encode(beachesJson, StandardCharsets.UTF_8.toString())
+
+                                navController?.navigate(Routes.beachScreen + "/$encodedBeachJson/$encodedBeachesJson")
+                                true
+                            }
+                        )
+                    }
+                }else{
+                    Log.d("Filtered", filteredBeaches.count().toString())
+                    filteredBeaches.forEach { marker ->
+                        val icon = bitmapDescriptorFromUrlWithRoundedCorners(
+                            context,
+                            marker.mainImage,
+                            10f,
+                        )
+                        Marker(
+                            state = rememberMarkerState(
+                                position = LatLng(
+                                    marker.location.latitude,
+                                    marker.location.longitude
+                                )
+                            ),
+                            title = "Moja Lokacija",
+                            icon = icon.value ?: BitmapDescriptorFactory.defaultMarker(),
+                            snippet = marker.description,
+                            onClick = {
+                                val beachJson = Gson().toJson(marker)
+                                val encodedBeachJson =
+                                    URLEncoder.encode(beachJson, StandardCharsets.UTF_8.toString())
+
+                                val beachesJson = Gson().toJson(filteredBeaches)
+                                val encodedBeachesJson = URLEncoder.encode(beachesJson, StandardCharsets.UTF_8.toString())
+
+                                navController?.navigate(Routes.beachScreen + "/$encodedBeachJson/$encodedBeachesJson")
+                                true
+                            }
+                        )
+                    }
                 }
             }
             Column(
@@ -273,14 +330,22 @@ fun IndexScreen(
                     searchValue = searchValue,
                     profileImage = profileImage.value.ifEmpty { "" },
                     onImageClick = {
+
                         val userJson = Gson().toJson(userData.value)
                         val encodedUserJson = URLEncoder.encode(userJson, StandardCharsets.UTF_8.toString())
                         navController?.navigate(Routes.userProfileScreen + "/$encodedUserJson")
-                    }
+
+                    },
+                    beaches = beachMarkerCopy,
+                    navController = navController,
+                    cameraPositionState = cameraPositionState
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Button(onClick = {
-                    showFilterDialog.value = true
+                    isAddNewBottomSheet.value = false
+                    scope.launch {
+                        sheetState.show()
+                    }
                 }) {
                     Text(text = "Filteri")
                 }
@@ -346,6 +411,7 @@ fun IndexScreen(
                 }
                 mapFooter(
                     openAddNewBeach = {
+                        isAddNewBottomSheet.value = true
                         scope.launch {
                             sheetState.show()
                         }
@@ -354,7 +420,12 @@ fun IndexScreen(
                     onHomeClick = {},
                     onTableClick = {
 //                        navController?.navigate(Routes.tableScreen)
-                        val beachesJson = Gson().toJson(beachMarkers)
+                        val beachesJson = Gson().toJson(
+                            if(!isFiltered.value)
+                                beachMarkers
+                            else
+                                filteredBeaches
+                        )
                         val encodedBeachesJson = URLEncoder.encode(beachesJson, StandardCharsets.UTF_8.toString())
                         navController?.navigate("tableScreen/$encodedBeachesJson")
                     },
@@ -391,22 +462,7 @@ fun IndexScreen(
        }
    }
 
-    beachesResource?.value.let {
-        when(it){
-            is Resource.Success -> {
-                Log.d("Podaci", it.toString())
-                beachMarkers.clear()
-                beachMarkers.addAll(it.result)
-            }
-            is Resource.loading -> {
 
-            }
-            is Resource.Failure -> {
-                Log.e("Podaci", it.toString())
-            }
-            null -> {}
-        }
-    }
 }
 
 @Composable
