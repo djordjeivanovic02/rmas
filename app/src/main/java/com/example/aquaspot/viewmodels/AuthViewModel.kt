@@ -28,12 +28,20 @@ class AuthViewModel(): ViewModel(){
     private val _currentUserFlow = MutableStateFlow<Resource<CustomUser>?>(null)
     val currentUserFlow: StateFlow<Resource<CustomUser>?> = _currentUserFlow
 
+    private val _allUsers = MutableStateFlow<Resource<List<CustomUser>>?>(null)
+    val allUsers: StateFlow<Resource<List<CustomUser>>?> = _allUsers
+
     val currentUser: FirebaseUser?
         get() = repository.currentUser
 
     fun getUserData() = viewModelScope.launch {
         val result = repository.getUserData()
         _currentUserFlow.value = result
+    }
+
+    fun getAllUserData() = viewModelScope.launch {
+        val result = repository.getAllUserData()
+        _allUsers.value = result
     }
 
     init {
@@ -57,7 +65,7 @@ class AuthViewModel(): ViewModel(){
         repository.logout()
         _loginFlow.value = null
         _registerFlow.value = null
-//        _currentUserFlow.value = null
+        _currentUserFlow.value = null
     }
 }
 

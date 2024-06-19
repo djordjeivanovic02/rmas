@@ -76,7 +76,8 @@ fun UserProfileScreen(
     navController: NavController?,
     viewModel: AuthViewModel?,
     beachViewModel: BeachViewModel?,
-    userData: CustomUser?
+    userData: CustomUser?,
+    isMy: Boolean
 ){
     beachViewModel?.getUserBeaches(userData?.id!!)
     val beachesResource = beachViewModel?.userBeaches?.collectAsState()
@@ -115,7 +116,6 @@ fun UserProfileScreen(
                         .fillMaxSize()
                         .background(Color.White)
                 ) {
-                    // Background image
                     Image(
                         painter = painterResource(id = R.drawable.beachwallpaper),
                         contentDescription = null,
@@ -124,7 +124,6 @@ fun UserProfileScreen(
                             .height(200.dp),
                         contentScale = ContentScale.Crop
                     )
-                    // Profile image
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -190,14 +189,16 @@ fun UserProfileScreen(
                 ){
                     Text(text = "Osnovne informacije", style = MaterialTheme.typography.h6)
                     Spacer(modifier = Modifier.height(13.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(imageVector = Icons.Filled.Email, contentDescription = "")
-                        Spacer(modifier = Modifier.width(5.dp))
-                        Text(text = viewModel?.currentUser?.email ?: "Nema email-a")
+                    if(isMy) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(imageVector = Icons.Filled.Email, contentDescription = "")
+                            Spacer(modifier = Modifier.width(5.dp))
+                            Text(text = viewModel?.currentUser?.email ?: "Nema email-a")
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -209,13 +210,14 @@ fun UserProfileScreen(
                 Spacer(modifier = Modifier.height(20.dp))
                 PhotosSection(beaches = beaches, navController = navController!!)
                 Spacer(modifier = Modifier.height(30.dp))
-
-                LogoutButton {
+                if(isMy) {
+                    LogoutButton {
 //                    Log.d("NavController", navController.toString())
-                    viewModel?.logout()
-                    navController.navigate(Routes.loginScreen) {
-                        popUpTo(0) { inclusive = true }
-                        launchSingleTop = true
+                        viewModel?.logout()
+                        navController.navigate(Routes.loginScreen) {
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
+                        }
                     }
                 }
             }

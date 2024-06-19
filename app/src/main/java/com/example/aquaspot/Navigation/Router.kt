@@ -17,6 +17,7 @@ import com.example.aquaspot.screens.BeachScreen
 import com.example.aquaspot.screens.IndexScreen
 import com.example.aquaspot.viewmodels.AuthViewModel
 import com.example.aquaspot.screens.LoginScreen
+import com.example.aquaspot.screens.RankingScreen
 import com.example.aquaspot.screens.RegisterScreen
 import com.example.aquaspot.screens.SettingScreen
 import com.example.aquaspot.screens.TableScreen
@@ -24,6 +25,7 @@ import com.example.aquaspot.screens.UserProfileScreen
 import com.example.aquaspot.viewmodels.BeachViewModel
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.Gson
 import com.google.maps.android.compose.rememberCameraPositionState
 
@@ -100,11 +102,13 @@ fun Router(
         ){backStackEntry ->
             val userDataJson = backStackEntry.arguments?.getString("userData")
             val userData = Gson().fromJson(userDataJson, CustomUser::class.java)
+            val isMy = FirebaseAuth.getInstance().currentUser?.uid == userData.id
             UserProfileScreen(
                 navController = navController,
                 viewModel = viewModel,
                 beachViewModel = beachViewModel,
-                userData = userData
+                userData = userData,
+                isMy = isMy
             )
         }
         composable(
@@ -118,6 +122,12 @@ fun Router(
         
         composable(Routes.settingsScreen){
             SettingScreen(navController = navController)
+        }
+        composable(Routes.rankingScreen){
+            RankingScreen(
+                viewModel = viewModel,
+                navController = navController
+            )
         }
     }
 }

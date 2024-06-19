@@ -123,7 +123,7 @@ fun AddNewBeachBottomSheet(
                 buttonIsLoading.value = false
                 val context = LocalContext.current
                 if(!showedAlert.value) {
-                    Toast.makeText(context, it.exception.message, Toast.LENGTH_LONG).show()
+//                    Toast.makeText(context, it.exception.message, Toast.LENGTH_LONG).show()
                     showedAlert.value = true
                     beachViewModel?.getAllBeaches()
                 }else{}
@@ -136,7 +136,7 @@ fun AddNewBeachBottomSheet(
                 buttonIsLoading.value = false
                 val context = LocalContext.current
                 if(!showedAlert.value) {
-                    Toast.makeText(context, "Uspesno dodato", Toast.LENGTH_LONG).show()
+//                    Toast.makeText(context, "Uspesno dodato", Toast.LENGTH_LONG).show()
                     showedAlert.value = true
                     beachViewModel?.getAllBeaches()
                 }else{}

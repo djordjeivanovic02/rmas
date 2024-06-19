@@ -87,6 +87,26 @@ class AuthRepositoryImp : AuthRepository {
         }
     }
 
+    override suspend fun getAllUserData(): Resource<List<CustomUser>> {
+        return try {
+            val db = FirebaseFirestore.getInstance()
+            val usersCollectionRef = db.collection("users")
+            val usersSnapshot = usersCollectionRef.get().await()
+
+            if (!usersSnapshot.isEmpty) {
+                val usersList = usersSnapshot.documents.mapNotNull { document ->
+                    document.toObject(CustomUser::class.java)
+                }
+                Resource.Success(usersList)
+            } else {
+                Resource.Failure(Exception("Nema korisnika u bazi podataka"))
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Resource.Failure(e)
+        }
+    }
+
     override fun logout() {
         firebaseAuth.signOut()
     }

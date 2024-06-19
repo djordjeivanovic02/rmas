@@ -358,7 +358,9 @@ fun IndexScreen(
                         val encodedBeachesJson = URLEncoder.encode(beachesJson, StandardCharsets.UTF_8.toString())
                         navController?.navigate("tableScreen/$encodedBeachesJson")
                     },
-                    onRankingClick = {},
+                    onRankingClick = {
+                        navController?.navigate(Routes.rankingScreen)
+                    },
                     onSettingsClick = {
                         navController?.navigate(Routes.settingsScreen)
                     }

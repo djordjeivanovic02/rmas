@@ -3,7 +3,7 @@ package com.example.aquaspot.model
 import com.google.firebase.firestore.DocumentId
 
 data class CustomUser(
-    @DocumentId val id: String = "",
+    @DocumentId var id: String = "",
     val fullName: String = "",
     val phoneNumber: String = "",
     val profileImage: String = "",

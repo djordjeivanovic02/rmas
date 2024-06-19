@@ -108,9 +108,10 @@ fun TableScreen(
                     navController.navigate(Routes.indexScreen)
                 },
                 onTableClick = {
-//                navController?.navigate(Routes.tableScreen)
                 },
-                onRankingClick = {},
+                onRankingClick = {
+                    navController.navigate(Routes.rankingScreen)
+                },
                 onSettingsClick = {
                     navController.navigate(Routes.settingsScreen)
                 }
