@@ -151,7 +151,11 @@ fun UserProfileScreen(
                             textAlign = TextAlign.Center
                         )
                         Text(
-                            text = "Početnik",
+                            text =
+                                if(userData.points <= 25) "Početnik"
+                                else if(userData.points <= 60) "Istraživač"
+                                else "Kontkvistador"
+                            ,
                             style = MaterialTheme.typography.subtitle1,
                             color = Color.Gray,
                             textAlign = TextAlign.Center
@@ -172,9 +176,9 @@ fun UserProfileScreen(
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        TextWithLabel(label = "Dodatih plaža", count = "122")
+                        TextWithLabel(label = "Dodatih plaža", count = beaches.count().toString())
                         TextWithLabel(label = "Posećenih plaža", count = "2")
-                        TextWithLabel(label = "Broj bodova", count = "37K")
+                        TextWithLabel(label = "Broj bodova", count = userData?.points.toString())
                     }
 
                     Spacer(modifier = Modifier.height(20.dp))
@@ -191,7 +195,7 @@ fun UserProfileScreen(
                     ) {
                         Icon(imageVector = Icons.Filled.Email, contentDescription = "")
                         Spacer(modifier = Modifier.width(5.dp))
-                        Text(text = viewModel?.currentUser?.email!!)
+                        Text(text = viewModel?.currentUser?.email ?: "Nema email-a")
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(
@@ -199,14 +203,20 @@ fun UserProfileScreen(
                     ) {
                         Icon(imageVector = Icons.Filled.Phone, contentDescription = "")
                         Spacer(modifier = Modifier.width(5.dp))
-                        Text(text = userData?.phoneNumber!!)
+                        Text(text = userData?.phoneNumber ?: "Nema broja telefona")
                     }
                 }
                 Spacer(modifier = Modifier.height(20.dp))
                 PhotosSection(beaches = beaches, navController = navController!!)
-                Spacer(modifier = Modifier.height(80.dp))
+                Spacer(modifier = Modifier.height(30.dp))
 
                 LogoutButton {
+//                    Log.d("NavController", navController.toString())
+                    viewModel?.logout()
+                    navController.navigate(Routes.loginScreen) {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             }
         }

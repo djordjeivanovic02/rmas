@@ -125,6 +125,7 @@ fun AddNewBeachBottomSheet(
                 if(!showedAlert.value) {
                     Toast.makeText(context, it.exception.message, Toast.LENGTH_LONG).show()
                     showedAlert.value = true
+                    beachViewModel?.getAllBeaches()
                 }else{}
             }
             is Resource.loading -> {

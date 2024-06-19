@@ -57,7 +57,7 @@ class AuthViewModel(): ViewModel(){
         repository.logout()
         _loginFlow.value = null
         _registerFlow.value = null
-        _currentUserFlow.value = null
+//        _currentUserFlow.value = null
     }
 }
 

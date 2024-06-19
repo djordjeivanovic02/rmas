@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DoNotDisturb
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -84,14 +85,17 @@ fun PhotosSection(
             modifier = Modifier.fillMaxWidth()
         ) {
             // Prikazivanje slika
-            for(beach in beaches){
-                item {
-                    AsyncImage(
-                        model = beach.mainImage,
-                        contentScale = ContentScale.Crop,
-                        contentDescription = "",
-                        modifier =
-                            Modifier.width(100.dp).height(70.dp)
+            if(beaches.isNotEmpty()) {
+                for (beach in beaches) {
+                    item {
+                        AsyncImage(
+                            model = beach.mainImage,
+                            contentScale = ContentScale.Crop,
+                            contentDescription = "",
+                            modifier =
+                            Modifier
+                                .width(150.dp)
+                                .height(150.dp)
                                 .clip(RoundedCornerShape(20.dp))
                                 .background(
                                     Color.White,
@@ -99,9 +103,30 @@ fun PhotosSection(
                                 )
                                 .clickable {
                                     val beachJson = Gson().toJson(beach)
-                                    val encodedBeachJson = URLEncoder.encode(beachJson, StandardCharsets.UTF_8.toString())
+                                    val encodedBeachJson = URLEncoder.encode(
+                                        beachJson,
+                                        StandardCharsets.UTF_8.toString()
+                                    )
                                     navController.navigate(Routes.beachScreen + "/$encodedBeachJson")
                                 }
+                        )
+                    }
+                }
+            }else{
+                item {
+                    Image(
+                        imageVector = Icons.Filled.DoNotDisturb,
+                        contentScale = ContentScale.Crop,
+                        contentDescription = "",
+                        modifier =
+                        Modifier
+                            .width(150.dp)
+                            .height(150.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(
+                                lightGreyColor,
+                                RoundedCornerShape(20.dp)
+                            )
                     )
                 }
             }
