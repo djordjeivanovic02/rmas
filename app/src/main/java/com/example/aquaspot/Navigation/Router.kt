@@ -138,7 +138,8 @@ fun Router(
                 cameraPositionState = rememberCameraPositionState {
                     position = CameraPosition.fromLatLngZoom(LatLng(latitude!!.toDouble(), longitude!!.toDouble()), 17f)
                 },
-                beachMarkers = beaches.toMutableList()
+                beachMarkers = beaches.toMutableList(),
+                isFilteredParam = true
             )
         }
         composable(
@@ -153,7 +154,8 @@ fun Router(
                 viewModel = viewModel,
                 navController = navController,
                 beachViewModel = beachViewModel,
-                beachMarkers = beaches.toMutableList()
+                beachMarkers = beaches.toMutableList(),
+                isFilteredParam = true
             )
         }
         composable(Routes.registerScreen){

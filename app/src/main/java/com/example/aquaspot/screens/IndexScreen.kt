@@ -23,8 +23,10 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,6 +42,7 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.SatelliteAlt
 import androidx.compose.material.icons.filled.Terrain
@@ -69,6 +72,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -140,9 +144,45 @@ fun IndexScreen(
     cameraPositionState: CameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(LatLng(43.321445, 21.896104), 17f)
     },
-    beachMarkers: MutableList<Beach>
+    beachMarkers: MutableList<Beach>,
+    isFilteredParam: Boolean = false
 ) {
     val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("filters", Context.MODE_PRIVATE)
+    val options = sharedPreferences.getString("options", null)
+    val crowd = sharedPreferences.getString("crowd", null)
+    val range = sharedPreferences.getFloat("range", 1000f)
+
+    val isFiltered = remember {
+        mutableStateOf(false)
+    }
+    val isFilteredIndicator = remember{
+        mutableStateOf(false)
+    }
+
+    if(isFilteredParam && (options != null || crowd != null || range != 1000f)){
+        isFilteredIndicator.value = true
+    }
+
+    val beachesResource = beachViewModel?.beaches?.collectAsState()
+    val allBeaches = remember {
+        mutableListOf<Beach>()
+    }
+    beachesResource?.value.let {
+        when(it){
+            is Resource.Success -> {
+                allBeaches.clear()
+                allBeaches.addAll(it.result)
+            }
+            is Resource.loading -> {
+
+            }
+            is Resource.Failure -> {
+                Log.e("Podaci", it.toString())
+            }
+            null -> {}
+        }
+    }
 
     viewModel?.getUserData()
 
@@ -150,9 +190,6 @@ fun IndexScreen(
 
     val filteredBeaches = remember {
         mutableListOf<Beach>()
-    }
-    val isFiltered = remember {
-        mutableStateOf(false)
     }
 
     val searchValue = remember {
@@ -233,7 +270,7 @@ fun IndexScreen(
             if(isAddNewBottomSheet.value)
                 AddNewBeachBottomSheet(beachViewModel!!, myLocation, sheetState)
             else
-                FiltersBottomSheet(beachViewModel!!, viewModel!!, beachMarkers, sheetState, isFiltered, filteredBeaches)
+                FiltersBottomSheet(beachViewModel!!, viewModel!!, allBeaches, sheetState, isFiltered,isFilteredIndicator, filteredBeaches, beachMarkers, myLocation.value)
         },
         sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
         modifier = Modifier.fillMaxSize()
@@ -340,14 +377,47 @@ fun IndexScreen(
                     navController = navController,
                     cameraPositionState = cameraPositionState
                 )
-                Spacer(modifier = Modifier.height(10.dp))
-                Button(onClick = {
-                    isAddNewBottomSheet.value = false
-                    scope.launch {
-                        sheetState.show()
+                Spacer(modifier = Modifier.height(5.dp))
+                Box(
+                    modifier = Modifier
+                        .clickable  {
+                            isAddNewBottomSheet.value = false
+                            scope.launch {
+                                sheetState.show()
+                            }
+                        }
+                        .background(
+                            if(isFiltered.value || isFilteredIndicator.value)
+                                mainColor
+                            else
+                                Color.White
+                            ,RoundedCornerShape(30.dp)
+                        )
+                        .padding(horizontal = 15.dp, vertical = 7.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.FilterAlt,
+                            contentDescription = "",
+                            tint =
+                                if(isFiltered.value || isFilteredIndicator.value)
+                                    Color.White
+                                else
+                                    mainColor
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Text(
+                            text = "Filteri",
+                            style = TextStyle(
+                                color = if(isFiltered.value || isFilteredIndicator.value)
+                                    Color.White
+                                else
+                                    mainColor
+                            )
+                        )
                     }
-                }) {
-                    Text(text = "Filteri")
                 }
             }
             Column(

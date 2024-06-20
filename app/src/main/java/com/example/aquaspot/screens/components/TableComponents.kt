@@ -80,7 +80,9 @@ fun CustomTable(
                         val latitude = beach.location.latitude
                         val longitude = beach.location.longitude
 
-                        navController.navigate(Routes.indexScreenWithParams + "/$isCameraSet/$latitude/$longitude")
+                        val beachesJson = Gson().toJson(beaches)
+                        val encodedBeachesJson = URLEncoder.encode(beachesJson, StandardCharsets.UTF_8.toString())
+                        navController.navigate(Routes.indexScreenWithParams + "/$isCameraSet/$latitude/$longitude/$encodedBeachesJson")
                     }
 
                 )
