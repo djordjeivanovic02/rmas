@@ -1,1 +1,1 @@
-Projekat iz RMAS
+Projekat iz predmeta RMAS
